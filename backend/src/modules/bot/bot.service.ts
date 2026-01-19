@@ -1,0 +1,163 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import { Context, Telegraf } from 'telegraf';
+import { InjectBot } from 'nestjs-telegraf';
+import { BotUser } from './entities/bot-user.entity';
+
+@Injectable()
+export class BotService {
+  constructor(
+    @InjectRepository(BotUser)
+    private botUserRepository: Repository<BotUser>,
+    private configService: ConfigService,
+    @InjectBot() private bot: Telegraf<Context>,
+  ) {}
+
+  async getOrCreateUser(telegramUser: any): Promise<BotUser> {
+    const telegramId = String(telegramUser.id);
+    
+    try {
+      let user = await this.botUserRepository.findOne({
+        where: { telegramId },
+      });
+
+      if (!user) {
+        // Try to insert, if fails due to race condition, fetch existing
+        try {
+          user = this.botUserRepository.create({
+            telegramId,
+            username: telegramUser.username,
+            firstName: telegramUser.first_name,
+            lastName: telegramUser.last_name,
+            language: 'uz',
+          });
+          await this.botUserRepository.save(user);
+        } catch (error) {
+          // Race condition - user was created by another request
+          user = await this.botUserRepository.findOne({
+            where: { telegramId },
+          });
+          if (!user) throw error; // If still not found, throw original error
+        }
+      }
+
+      // Update last active and user info
+      user.lastActiveAt = new Date();
+      user.username = telegramUser.username;
+      user.firstName = telegramUser.first_name;
+      user.lastName = telegramUser.last_name;
+      await this.botUserRepository.save(user);
+
+      return user;
+    } catch (error) {
+      console.error('Error in getOrCreateUser:', error);
+      // Return a minimal user object to prevent bot crash
+      const existingUser = await this.botUserRepository.findOne({
+        where: { telegramId },
+      });
+      if (existingUser) return existingUser;
+      throw error;
+    }
+  }
+
+  async incrementRequestCount(telegramId: string, type: 'text' | 'voice' | 'image'): Promise<void> {
+    const user = await this.botUserRepository.findOne({
+      where: { telegramId },
+    });
+
+    if (user) {
+      user.totalRequests++;
+      if (type === 'text') user.textRequests++;
+      if (type === 'voice') user.voiceRequests++;
+      if (type === 'image') user.imageRequests++;
+      await this.botUserRepository.save(user);
+    }
+  }
+
+  async setUserLanguage(telegramId: string, language: string): Promise<void> {
+    await this.botUserRepository.update(
+      { telegramId },
+      { language },
+    );
+  }
+
+  async getUserLanguage(telegramId: string): Promise<string> {
+    const user = await this.botUserRepository.findOne({
+      where: { telegramId },
+    });
+    return user?.language || 'uz';
+  }
+
+  async checkChannelMembership(userId: number, channelId: string): Promise<boolean> {
+    try {
+      const member = await this.bot.telegram.getChatMember(channelId, userId);
+      return ['member', 'administrator', 'creator'].includes(member.status);
+    } catch (error) {
+      console.error('Channel membership check error:', error);
+      return false;
+    }
+  }
+
+  async sendMessageToChannel(channelId: string, text: string, options?: any): Promise<any> {
+    try {
+      return await this.bot.telegram.sendMessage(channelId, text, options);
+    } catch (error) {
+      console.error('Send message to channel error:', error);
+      throw error;
+    }
+  }
+
+  async sendPhotoToChannel(channelId: string, photo: string, caption?: string): Promise<any> {
+    try {
+      return await this.bot.telegram.sendPhoto(channelId, photo, { caption });
+    } catch (error) {
+      console.error('Send photo to channel error:', error);
+      throw error;
+    }
+  }
+
+  async getAllUsers(): Promise<BotUser[]> {
+    return this.botUserRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getUsersCount(): Promise<number> {
+    return this.botUserRepository.count();
+  }
+
+  async getActiveUsersCount(days: number = 7): Promise<number> {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    
+    return this.botUserRepository.count({
+      where: {
+        lastActiveAt: {
+          $gte: date,
+        } as any,
+      },
+    });
+  }
+
+  async broadcastMessage(text: string): Promise<{ sent: number; failed: number }> {
+    const users = await this.botUserRepository.find();
+    let sent = 0;
+    let failed = 0;
+
+    for (const user of users) {
+      try {
+        await this.bot.telegram.sendMessage(user.telegramId, text);
+        sent++;
+        // Rate limiting - wait 50ms between messages
+        await new Promise(resolve => setTimeout(resolve, 50));
+      } catch (error) {
+        failed++;
+        console.error(`Failed to send to ${user.telegramId}:`, error);
+      }
+    }
+
+    return { sent, failed };
+  }
+}
