@@ -14,6 +14,9 @@ export class Channel {
   @Column()
   title: string;
 
+  @Column({ nullable: true })
+  photoUrl: string;
+
   @Column({ default: true })
   isMandatory: boolean;
 

@@ -17,6 +17,11 @@ export class CreateChannelDto {
   @IsNotEmpty()
   title: string;
 
+  @ApiProperty({ example: 'https://example.com/photo.jpg' })
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
+
   @ApiProperty({ example: true })
   @IsBoolean()
   @IsOptional()
@@ -38,6 +43,11 @@ export class UpdateChannelDto {
   @IsString()
   @IsOptional()
   title?: string;
+
+  @ApiProperty({ example: 'https://example.com/photo.jpg' })
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
 
   @ApiProperty({ example: true })
   @IsBoolean()

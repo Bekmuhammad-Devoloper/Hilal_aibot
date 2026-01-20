@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { channelsApi } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiHash, FiUsers, FiLink } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiHash, FiUsers, FiLink, FiImage } from 'react-icons/fi';
 
 interface Channel {
   id: number;
   channelId: string;
   channelUsername: string;
   title: string;
+  photoUrl?: string;
   isMandatory: boolean;
   isActive: boolean;
   createdAt: string;
@@ -24,6 +25,7 @@ export default function ChannelsPage() {
     title: '', 
     channelUsername: '', 
     channelId: '',
+    photoUrl: '',
     isMandatory: true 
   });
 
@@ -88,11 +90,12 @@ export default function ChannelsPage() {
         title: channel.title, 
         channelUsername: channel.channelUsername, 
         channelId: channel.channelId,
+        photoUrl: channel.photoUrl || '',
         isMandatory: channel.isMandatory 
       });
     } else {
       setEditingChannel(null);
-      setFormData({ title: '', channelUsername: '', channelId: '', isMandatory: true });
+      setFormData({ title: '', channelUsername: '', channelId: '', photoUrl: '', isMandatory: true });
     }
     setShowModal(true);
   };
@@ -100,7 +103,7 @@ export default function ChannelsPage() {
   const closeModal = () => {
     setShowModal(false);
     setEditingChannel(null);
-    setFormData({ title: '', channelUsername: '', channelId: '', isMandatory: true });
+    setFormData({ title: '', channelUsername: '', channelId: '', photoUrl: '', isMandatory: true });
   };
 
   if (loading) {
@@ -150,9 +153,17 @@ export default function ChannelsPage() {
           {channelsArray.map((channel) => (
             <div key={channel.id} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-gray-100 group">
               <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                  {channel.title.charAt(0).toUpperCase()}
-                </div>
+                {channel.photoUrl ? (
+                  <img 
+                    src={channel.photoUrl} 
+                    alt={channel.title} 
+                    className="w-14 h-14 rounded-xl object-cover shadow-lg"
+                  />
+                ) : (
+                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                    {channel.title.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => openModal(channel)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" title="Tahrirlash">
                     <FiEdit2 className="w-4 h-4" />
@@ -203,6 +214,24 @@ export default function ChannelsPage() {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
                   <input type="text" value={formData.channelUsername} onChange={(e) => setFormData({ ...formData, channelUsername: e.target.value })} className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" placeholder="username" required />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <FiImage className="w-4 h-4 inline mr-1" />
+                  Rasm URL (ixtiyoriy)
+                </label>
+                <input 
+                  type="url" 
+                  value={formData.photoUrl} 
+                  onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })} 
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
+                  placeholder="https://example.com/channel-photo.jpg" 
+                />
+                {formData.photoUrl && (
+                  <div className="mt-2">
+                    <img src={formData.photoUrl} alt="Preview" className="w-16 h-16 rounded-xl object-cover" onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} />
+                  </div>
+                )}
               </div>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div>
