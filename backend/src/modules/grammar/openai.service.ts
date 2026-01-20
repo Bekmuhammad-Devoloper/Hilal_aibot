@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as FormData from 'form-data';
 
 export interface OpenAIResult {
   originalText: string;
@@ -280,16 +281,18 @@ Eslatma: Qo'lyozma bo'lsa ham har bir so'zni diqqat bilan o'qi!`;
     try {
       console.log('[OpenAI Whisper] Starting transcription, audio size:', audioBuffer.length, 'bytes');
       
-      // FormData yaratish
+      // form-data kutubxonasi bilan FormData yaratish
       const formData = new FormData();
       
-      // Audio file ni Uint8Array ga convert qilib blob yaratish
-      const uint8Array = new Uint8Array(audioBuffer.buffer, audioBuffer.byteOffset, audioBuffer.length);
-      const audioBlob = new Blob([uint8Array], { type: 'audio/ogg' });
-      formData.append('file', audioBlob, 'audio.ogg');
+      // Audio buffer ni to'g'ridan-to'g'ri qo'shish
+      formData.append('file', audioBuffer, {
+        filename: 'audio.ogg',
+        contentType: 'audio/ogg',
+      });
       formData.append('model', 'whisper-1');
       formData.append('language', langCode);
       formData.append('response_format', 'text');
+      
       // Prompt - tilga qarab yaxshiroq tanib olish uchun
       const prompts: { [key: string]: string } = {
         uz: "Bu o'zbek tilidagi ovozli xabar. Tinish belgilarini to'g'ri qo'y.",
@@ -303,8 +306,9 @@ Eslatma: Qo'lyozma bo'lsa ham har bir so'zni diqqat bilan o'qi!`;
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
+          ...formData.getHeaders(),
         },
-        body: formData,
+        body: formData as any,
       });
 
       if (!response.ok) {
