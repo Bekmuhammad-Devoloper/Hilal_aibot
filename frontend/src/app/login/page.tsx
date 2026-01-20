@@ -70,8 +70,8 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-lg mb-4">
-            <span className="text-4xl">🤖</span>
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
+            <img src="/Hilal Edu - logo-2.png" alt="Hilal AI" className="w-16 h-16 object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-white">Hilal AI Bot</h1>
           <p className="text-white/70 mt-2">Admin Panel</p>
