@@ -283,10 +283,17 @@ export default function PostsPage() {
                 </div>
               )}
               {(post.mediaUrl || post.mediaPath) && post.type === 'video' && (
-                <div className="h-40 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                  <div className="text-center">
-                    <FiVideo className="w-12 h-12 text-purple-400 mx-auto mb-2" />
-                    <span className="text-sm text-purple-600">Video</span>
+                <div className="h-40 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center relative overflow-hidden">
+                  <video 
+                    src={post.mediaPath || post.mediaUrl} 
+                    className="w-full h-full object-cover"
+                    muted
+                    preload="metadata"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
+                      <FiVideo className="w-6 h-6 text-purple-600" />
+                    </div>
                   </div>
                 </div>
               )}
