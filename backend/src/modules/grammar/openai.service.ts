@@ -261,6 +261,94 @@ Eslatma: Qo'lyozma bo'lsa ham har bir so'zni diqqat bilan o'qi!`;
     return this.correctGrammar(speechText, language);
   }
 
+  // OpenAI Whisper - ovozdan matnga (eng aniq!)
+  async transcribeAudio(audioBuffer: Buffer, language: string = 'uz'): Promise<string> {
+    if (!this.apiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    // Til kodlari Whisper uchun
+    const whisperLangCodes: { [key: string]: string } = {
+      uz: 'uz',
+      ru: 'ru',
+      en: 'en',
+      tr: 'tr',
+    };
+
+    const langCode = whisperLangCodes[language] || 'uz';
+
+    try {
+      console.log('[OpenAI Whisper] Starting transcription, audio size:', audioBuffer.length, 'bytes');
+      
+      // FormData yaratish
+      const formData = new FormData();
+      
+      // Audio file ni blob qilib qo'shish
+      const audioBlob = new Blob([audioBuffer], { type: 'audio/ogg' });
+      formData.append('file', audioBlob, 'audio.ogg');
+      formData.append('model', 'whisper-1');
+      formData.append('language', langCode);
+      formData.append('response_format', 'text');
+      // Prompt - tilga qarab yaxshiroq tanib olish uchun
+      const prompts: { [key: string]: string } = {
+        uz: "Bu o'zbek tilidagi ovozli xabar. Tinish belgilarini to'g'ri qo'y.",
+        ru: "Это голосовое сообщение на русском языке. Расставь знаки препинания правильно.",
+        en: "This is an English voice message. Add proper punctuation.",
+        tr: "Bu Türkçe bir sesli mesaj. Noktalama işaretlerini doğru koy.",
+      };
+      formData.append('prompt', prompts[langCode] || prompts['uz']);
+
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('[OpenAI Whisper] API error:', response.status, errorData);
+        throw new Error(`Whisper API error: ${response.status}`);
+      }
+
+      const text = await response.text();
+      console.log('[OpenAI Whisper] Transcription completed:', text.substring(0, 100) + '...');
+      
+      return text.trim();
+    } catch (error: any) {
+      console.error('[OpenAI Whisper] Error:', error.message);
+      throw error;
+    }
+  }
+
+  // URL dan audio yuklab Whisper ga yuborish
+  async transcribeAudioFromUrl(audioUrl: string, language: string = 'uz'): Promise<string> {
+    if (!this.apiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    try {
+      console.log('[OpenAI Whisper] Downloading audio from URL...');
+      
+      // Audio faylni yuklash
+      const response = await fetch(audioUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download audio: ${response.status}`);
+      }
+      
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = Buffer.from(arrayBuffer);
+      
+      console.log('[OpenAI Whisper] Audio downloaded, size:', audioBuffer.length, 'bytes');
+      
+      return this.transcribeAudio(audioBuffer, language);
+    } catch (error: any) {
+      console.error('[OpenAI Whisper] URL transcribe error:', error.message);
+      throw error;
+    }
+  }
+
   isAvailable(): boolean {
     return !!this.apiKey;
   }

@@ -339,8 +339,28 @@ export class BotUpdate {
       // Get file
       const fileLink = await ctx.telegram.getFileLink(voice.file_id);
       
-      // SpeechToText orqali ovozni matnga
-      const text = await this.speechToTextService.transcribe(fileLink.href, lang);
+      // OpenAI Whisper - eng aniq ovozni matnga o'tkazuvchi
+      let text = '';
+      let usedTranscriber = '';
+      
+      if (this.openaiService.isAvailable()) {
+        try {
+          console.log('[Bot] Using OpenAI Whisper for voice transcription...');
+          text = await this.openaiService.transcribeAudioFromUrl(fileLink.href, lang);
+          usedTranscriber = 'Whisper';
+        } catch (e: any) {
+          console.log('[Bot] OpenAI Whisper failed:', e.message);
+        }
+      }
+      
+      // Fallback: SpeechToTextService
+      if (!text) {
+        console.log('[Bot] Falling back to SpeechToTextService...');
+        text = await this.speechToTextService.transcribe(fileLink.href, lang);
+        usedTranscriber = 'SpeechToText';
+      }
+      
+      console.log('[Bot] Voice transcription completed using:', usedTranscriber, '- Text:', text?.substring(0, 50) + '...');
 
       if (!text) {
         await ctx.deleteMessage(processingMsg.message_id);
