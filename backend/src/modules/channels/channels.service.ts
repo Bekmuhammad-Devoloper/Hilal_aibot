@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { InjectBot } from 'nestjs-telegraf';
+import { Telegraf, Context } from 'telegraf';
 import { Channel } from './entities/channel.entity';
 
 @Injectable()
@@ -8,11 +10,55 @@ export class ChannelsService {
   constructor(
     @InjectRepository(Channel)
     private channelRepository: Repository<Channel>,
+    @InjectBot() private bot: Telegraf<Context>,
   ) {}
+
+  // Telegram dan kanal ma'lumotlarini olish
+  async getChannelInfo(channelUsername: string): Promise<{ title: string; photoUrl: string | null; channelId: string } | null> {
+    try {
+      const username = channelUsername.startsWith('@') ? channelUsername : `@${channelUsername}`;
+      console.log('[ChannelsService] Getting channel info for:', username);
+      
+      const chat = await this.bot.telegram.getChat(username);
+      console.log('[ChannelsService] Chat info:', JSON.stringify(chat));
+      
+      let photoUrl: string | null = null;
+      
+      // Kanal rasmini olish
+      if ('photo' in chat && chat.photo) {
+        try {
+          const file = await this.bot.telegram.getFile(chat.photo.big_file_id);
+          photoUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${file.file_path}`;
+          console.log('[ChannelsService] Channel photo URL:', photoUrl);
+        } catch (photoError) {
+          console.log('[ChannelsService] Could not get photo:', photoError);
+        }
+      }
+      
+      return {
+        title: 'title' in chat ? chat.title || '' : '',
+        photoUrl,
+        channelId: String(chat.id),
+      };
+    } catch (error: any) {
+      console.error('[ChannelsService] Get channel info error:', error.message);
+      return null;
+    }
+  }
 
   async create(data: Partial<Channel>): Promise<Channel> {
     console.log('[ChannelsService] Creating channel with data:', JSON.stringify(data));
     try {
+      // Agar photoUrl yoki title bo'lmasa, Telegram dan olishga harakat qilamiz
+      if (data.channelUsername && (!data.photoUrl || !data.title)) {
+        const channelInfo = await this.getChannelInfo(data.channelUsername);
+        if (channelInfo) {
+          if (!data.title) data.title = channelInfo.title;
+          if (!data.photoUrl) data.photoUrl = channelInfo.photoUrl || undefined;
+          if (!data.channelId || data.channelId.startsWith('@')) data.channelId = channelInfo.channelId;
+        }
+      }
+      
       const channel = this.channelRepository.create(data);
       console.log('[ChannelsService] Channel entity created:', JSON.stringify(channel));
       const saved = await this.channelRepository.save(channel);

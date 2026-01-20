@@ -69,6 +69,7 @@ export const statsApi = {
 export const channelsApi = {
   getAll: () => api.get('/api/channels').then(res => res.data),
   getById: (id: number) => api.get(`/api/channels/${id}`).then(res => res.data),
+  getInfo: (username: string) => api.get('/api/channels/info', { params: { username } }).then(res => res.data),
   create: (data: any) => api.post('/api/channels', data).then(res => res.data),
   update: (id: number, data: any) => api.put(`/api/channels/${id}`, data).then(res => res.data),
   delete: (id: number) => api.delete(`/api/channels/${id}`).then(res => res.data),

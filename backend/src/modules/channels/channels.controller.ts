@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ChannelsService } from './channels.service';
@@ -17,6 +17,17 @@ export class ChannelsController {
     const channels = await this.channelsService.findAll();
     console.log('Channels count:', channels.length);
     return channels;
+  }
+
+  @Get('info')
+  async getChannelInfo(@Query('username') username: string) {
+    console.log('=== CHANNELS: GET INFO ===', username);
+    if (!username) {
+      return { error: 'Username required' };
+    }
+    const info = await this.channelsService.getChannelInfo(username);
+    console.log('Channel info:', info);
+    return info || { error: 'Channel not found' };
   }
 
   @Get(':id')
