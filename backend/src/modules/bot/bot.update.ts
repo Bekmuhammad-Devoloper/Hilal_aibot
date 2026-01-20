@@ -6,6 +6,7 @@ import { GrammarService } from '../grammar/grammar.service';
 import { SpeechToTextService } from '../grammar/speech-to-text.service';
 import { OcrService } from '../grammar/ocr.service';
 import { GeminiService } from '../grammar/gemini.service';
+import { OpenAIService } from '../grammar/openai.service';
 import { ChannelsService } from '../channels/channels.service';
 import { StatsService } from '../stats/stats.service';
 import { AuthService } from '../auth/auth.service';
@@ -21,6 +22,7 @@ export class BotUpdate {
     private speechToTextService: SpeechToTextService,
     private ocrService: OcrService,
     private geminiService: GeminiService,
+    private openaiService: OpenAIService,
     private channelsService: ChannelsService,
     private statsService: StatsService,
     private authService: AuthService,
@@ -246,14 +248,40 @@ export class BotUpdate {
     try {
       const startTime = Date.now();
       
-      // Gemini orqali grammatik tekshirish, agar ishlamasa GrammarService ga fallback
+      // GPT-4o birinchi, keyin Gemini, keyin GrammarService fallback
       let result;
-      try {
-        result = await this.geminiService.correctGrammar(text, lang);
-      } catch (geminiError) {
-        console.log('Gemini failed, using GrammarService fallback');
-        result = await this.grammarService.correctGrammar(text, lang);
+      let usedModel = 'unknown';
+      
+      // 1. GPT-4o (primary)
+      if (this.openaiService.isAvailable()) {
+        try {
+          console.log('[Bot] Using GPT-4o for grammar check...');
+          result = await this.openaiService.correctGrammar(text, lang);
+          usedModel = 'GPT-4o';
+        } catch (openaiError: any) {
+          console.log('[Bot] GPT-4o failed:', openaiError.message);
+        }
       }
+      
+      // 2. Gemini (fallback)
+      if (!result) {
+        try {
+          console.log('[Bot] Falling back to Gemini...');
+          result = await this.geminiService.correctGrammar(text, lang);
+          usedModel = 'Gemini';
+        } catch (geminiError: any) {
+          console.log('[Bot] Gemini failed:', geminiError.message);
+        }
+      }
+      
+      // 3. GrammarService (last fallback)
+      if (!result) {
+        console.log('[Bot] Falling back to GrammarService...');
+        result = await this.grammarService.correctGrammar(text, lang);
+        usedModel = 'Basic';
+      }
+      
+      console.log('[Bot] Grammar check completed using:', usedModel);
 
       await this.botService.incrementRequestCount(String(user.id), 'text');
 
@@ -320,12 +348,26 @@ export class BotUpdate {
         return;
       }
 
-      // Gemini orqali grammatik tekshirish, fallback GrammarService
+      // GPT-4o birinchi, keyin Gemini, keyin GrammarService fallback
       let result;
-      try {
-        result = await this.geminiService.correctGrammar(text, lang);
-      } catch (geminiError) {
-        console.log('Gemini failed for voice, using GrammarService fallback');
+      
+      if (this.openaiService.isAvailable()) {
+        try {
+          result = await this.openaiService.correctGrammar(text, lang);
+        } catch (e) {
+          console.log('[Bot] GPT-4o failed for voice');
+        }
+      }
+      
+      if (!result) {
+        try {
+          result = await this.geminiService.correctGrammar(text, lang);
+        } catch (e) {
+          console.log('[Bot] Gemini failed for voice');
+        }
+      }
+      
+      if (!result) {
         result = await this.grammarService.correctGrammar(text, lang);
       }
 
@@ -396,12 +438,26 @@ export class BotUpdate {
         return;
       }
 
-      // Gemini orqali grammatik tekshirish, fallback GrammarService
+      // GPT-4o birinchi, keyin Gemini, keyin GrammarService fallback
       let result;
-      try {
-        result = await this.geminiService.correctGrammar(text, lang);
-      } catch (geminiError) {
-        console.log('Gemini failed for image, using GrammarService fallback');
+      
+      if (this.openaiService.isAvailable()) {
+        try {
+          result = await this.openaiService.correctGrammar(text, lang);
+        } catch (e) {
+          console.log('[Bot] GPT-4o failed for image');
+        }
+      }
+      
+      if (!result) {
+        try {
+          result = await this.geminiService.correctGrammar(text, lang);
+        } catch (e) {
+          console.log('[Bot] Gemini failed for image');
+        }
+      }
+      
+      if (!result) {
         result = await this.grammarService.correctGrammar(text, lang);
       }
 
