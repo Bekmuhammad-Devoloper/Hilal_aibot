@@ -2,9 +2,32 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
+import * as fs from 'fs';
+import * as path from 'path';
 
-// Telegram login kodlari (xotirada saqlaymiz)
-const telegramLoginCodes: Map<string, { telegramId: string; expiresAt: Date }> = new Map();
+// Telegram login kodlarini faylda saqlash (cluster mode uchun)
+const CODES_FILE = path.join(process.cwd(), 'telegram-codes.json');
+
+function loadCodes(): Map<string, { telegramId: string; expiresAt: string }> {
+  try {
+    if (fs.existsSync(CODES_FILE)) {
+      const data = JSON.parse(fs.readFileSync(CODES_FILE, 'utf-8'));
+      return new Map(Object.entries(data));
+    }
+  } catch (e) {
+    console.error('Error loading codes:', e);
+  }
+  return new Map();
+}
+
+function saveCodes(codes: Map<string, { telegramId: string; expiresAt: string }>) {
+  try {
+    const obj = Object.fromEntries(codes);
+    fs.writeFileSync(CODES_FILE, JSON.stringify(obj, null, 2));
+  } catch (e) {
+    console.error('Error saving codes:', e);
+  }
+}
 
 @Injectable()
 export class AuthService {
@@ -46,9 +69,14 @@ export class AuthService {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     
     // 5 daqiqa amal qiladi
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
     
-    telegramLoginCodes.set(code, { telegramId, expiresAt });
+    // Fayldan yuklash, qo'shish va saqlash
+    const codes = loadCodes();
+    codes.set(code, { telegramId, expiresAt });
+    saveCodes(codes);
+    
+    console.log('Generated code:', code, 'for telegramId:', telegramId);
     
     // Eskilarini tozalash
     this.cleanupExpiredCodes();
@@ -58,14 +86,20 @@ export class AuthService {
 
   // Telegram kodi bilan login
   async loginWithTelegramCode(code: string) {
-    const data = telegramLoginCodes.get(code);
+    // Fayldan kodlarni yuklash
+    const codes = loadCodes();
+    const data = codes.get(code);
+    
+    console.log('Checking code:', code, '| Found:', !!data);
     
     if (!data) {
       throw new UnauthorizedException('Invalid or expired code');
     }
     
-    if (new Date() > data.expiresAt) {
-      telegramLoginCodes.delete(code);
+    const expiresAt = new Date(data.expiresAt);
+    if (new Date() > expiresAt) {
+      codes.delete(code);
+      saveCodes(codes);
       throw new UnauthorizedException('Code expired');
     }
     
@@ -79,7 +113,8 @@ export class AuthService {
     }
     
     // Kodni o'chirish (bir martalik)
-    telegramLoginCodes.delete(code);
+    codes.delete(code);
+    saveCodes(codes);
     
     // Token yaratish
     const payload = { 
@@ -101,10 +136,16 @@ export class AuthService {
 
   private cleanupExpiredCodes() {
     const now = new Date();
-    for (const [code, data] of telegramLoginCodes.entries()) {
-      if (now > data.expiresAt) {
-        telegramLoginCodes.delete(code);
+    const codes = loadCodes();
+    let changed = false;
+    for (const [code, data] of codes.entries()) {
+      if (now > new Date(data.expiresAt)) {
+        codes.delete(code);
+        changed = true;
       }
+    }
+    if (changed) {
+      saveCodes(codes);
     }
   }
 
