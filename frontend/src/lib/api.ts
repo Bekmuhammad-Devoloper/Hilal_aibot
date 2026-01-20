@@ -1,10 +1,15 @@
 import axios from 'axios';
 
 // Production da domen orqali, development da localhost
-const getApiUrl = () => {
+export const getApiUrl = () => {
   if (typeof window !== 'undefined') {
-    // Browser da - joriy domen ishlatiladi
-    return window.location.origin;
+    // Browser da - joriy domen orqali API ga murojaat
+    const origin = window.location.origin;
+    // Frontend port 3001, backend port 3000
+    if (origin.includes('localhost:3001')) {
+      return 'http://localhost:3000';
+    }
+    return origin;
   }
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 };

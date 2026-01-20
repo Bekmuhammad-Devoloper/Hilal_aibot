@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { postsApi } from '@/lib/api';
+import { postsApi, getApiUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2, FiX, FiFileText, FiSend, FiImage, FiClock, FiCheck, FiUsers, FiRadio, FiVideo, FiLink, FiUpload } from 'react-icons/fi';
 
@@ -72,11 +72,12 @@ export default function PostsPage() {
     try {
       const result = await postsApi.upload(file);
       console.log('Upload result:', result);
-      setUploadedFile({ path: result.path, type: result.type });
+      const fullPath = `${getApiUrl()}${result.path}`;
+      setUploadedFile({ path: fullPath, type: result.type });
       setFormData(prev => ({ 
         ...prev, 
         type: result.type,
-        mediaUrl: result.path 
+        mediaUrl: fullPath 
       }));
       toast.success('Fayl yuklandi!');
     } catch (error) {
