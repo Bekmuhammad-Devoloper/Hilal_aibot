@@ -16,6 +16,11 @@ function TelegramLoginContent() {
   useEffect(() => {
     const code = searchParams.get('code');
     
+    console.log('=== FRONTEND DEBUG ===');
+    console.log('URL code:', code);
+    console.log('Full URL:', window.location.href);
+    console.log('======================');
+    
     if (!code) {
       setStatus('error');
       setError('Login kodi topilmadi');
@@ -25,7 +30,12 @@ function TelegramLoginContent() {
     // Telegram code bilan login qilish
     const loginWithCode = async () => {
       try {
-        const response = await api.post('/api/auth/telegram-login', { code });
+        console.log('Sending request with code:', code);
+        const requestBody = { code: code };
+        console.log('Request body:', JSON.stringify(requestBody));
+        
+        const response = await api.post('/api/auth/telegram-login', requestBody);
+        console.log('Response:', response.data);
         const data = response.data;
         
         if (data.access_token) {
