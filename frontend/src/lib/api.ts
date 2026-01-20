@@ -37,44 +37,44 @@ api.interceptors.response.use(
 // Auth
 export const authApi = {
   login: (username: string, password: string) =>
-    api.post('/api/auth/login', { username, password }),
+    api.post('/api/auth/login', { username, password }).then(res => res.data),
   telegramLogin: (code: string) =>
-    api.post('/api/auth/telegram-login', { code }),
-  getProfile: () => api.get('/api/auth/profile'),
+    api.post('/api/auth/telegram-login', { code }).then(res => res.data),
+  getProfile: () => api.get('/api/auth/profile').then(res => res.data),
 };
 
 // Stats
 export const statsApi = {
-  getDashboard: () => api.get('/api/stats/dashboard'),
+  getDashboard: () => api.get('/api/stats/dashboard').then(res => res.data),
   getRecentRequests: (limit?: number) =>
-    api.get('/api/stats/recent-requests', { params: { limit } }),
+    api.get('/api/stats/recent-requests', { params: { limit } }).then(res => res.data),
   getTopUsers: (limit?: number) =>
-    api.get('/api/stats/top-users', { params: { limit } }),
+    api.get('/api/stats/top-users', { params: { limit } }).then(res => res.data),
   getDaily: (days?: number) =>
-    api.get('/api/stats/daily', { params: { days } }),
+    api.get('/api/stats/daily', { params: { days } }).then(res => res.data),
 };
 
 // Channels
 export const channelsApi = {
-  getAll: () => api.get('/api/channels'),
-  getById: (id: number) => api.get(`/api/channels/${id}`),
-  create: (data: any) => api.post('/api/channels', data),
-  update: (id: number, data: any) => api.put(`/api/channels/${id}`, data),
-  delete: (id: number) => api.delete(`/api/channels/${id}`),
-  toggleMandatory: (id: number) => api.post(`/api/channels/${id}/toggle-mandatory`),
-  toggleActive: (id: number) => api.post(`/api/channels/${id}/toggle-active`),
+  getAll: () => api.get('/api/channels').then(res => res.data),
+  getById: (id: number) => api.get(`/api/channels/${id}`).then(res => res.data),
+  create: (data: any) => api.post('/api/channels', data).then(res => res.data),
+  update: (id: number, data: any) => api.put(`/api/channels/${id}`, data).then(res => res.data),
+  delete: (id: number) => api.delete(`/api/channels/${id}`).then(res => res.data),
+  toggleMandatory: (id: number) => api.post(`/api/channels/${id}/toggle-mandatory`).then(res => res.data),
+  toggleActive: (id: number) => api.post(`/api/channels/${id}/toggle-active`).then(res => res.data),
 };
 
 // Posts
 export const postsApi = {
-  getAll: () => api.get('/api/posts'),
-  getById: (id: number) => api.get(`/api/posts/${id}`),
-  getStats: () => api.get('/api/posts/stats'),
-  create: (data: any) => api.post('/api/posts', data),
-  update: (id: number, data: any) => api.put(`/api/posts/${id}`, data),
-  delete: (id: number) => api.delete(`/api/posts/${id}`),
+  getAll: () => api.get('/api/posts').then(res => res.data),
+  getById: (id: number) => api.get(`/api/posts/${id}`).then(res => res.data),
+  getStats: () => api.get('/api/posts/stats').then(res => res.data),
+  create: (data: any) => api.post('/api/posts', data).then(res => res.data),
+  update: (id: number, data: any) => api.put(`/api/posts/${id}`, data).then(res => res.data),
+  delete: (id: number) => api.delete(`/api/posts/${id}`).then(res => res.data),
   send: (id: number, channelId: string) =>
-    api.post(`/api/posts/${id}/send`, { channelId }),
+    api.post(`/api/posts/${id}/send`, { channelId }).then(res => res.data),
 };
 
 export default api;
