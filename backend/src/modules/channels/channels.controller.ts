@@ -13,37 +13,63 @@ export class ChannelsController {
 
   @Get()
   async findAll() {
-    return this.channelsService.findAll();
+    console.log('=== CHANNELS: GET ALL ===');
+    const channels = await this.channelsService.findAll();
+    console.log('Channels count:', channels.length);
+    return channels;
   }
 
   @Get(':id')
   async findById(@Param('id') id: number) {
+    console.log('=== CHANNELS: GET BY ID ===', id);
     return this.channelsService.findById(id);
   }
 
   @Post()
   async create(@Body() createChannelDto: CreateChannelDto) {
-    return this.channelsService.create(createChannelDto);
+    console.log('=== CHANNELS: CREATE ===');
+    console.log('Request body:', createChannelDto);
+    try {
+      const channel = await this.channelsService.create(createChannelDto);
+      console.log('Channel created:', channel);
+      return channel;
+    } catch (error: any) {
+      console.error('Channel create error:', error.message);
+      throw error;
+    }
   }
 
   @Put(':id')
   async update(@Param('id') id: number, @Body() updateChannelDto: UpdateChannelDto) {
-    return this.channelsService.update(id, updateChannelDto);
+    console.log('=== CHANNELS: UPDATE ===', id);
+    console.log('Request body:', updateChannelDto);
+    try {
+      const channel = await this.channelsService.update(id, updateChannelDto);
+      console.log('Channel updated:', channel);
+      return channel;
+    } catch (error: any) {
+      console.error('Channel update error:', error.message);
+      throw error;
+    }
   }
 
   @Delete(':id')
   async delete(@Param('id') id: number) {
+    console.log('=== CHANNELS: DELETE ===', id);
     await this.channelsService.delete(id);
+    console.log('Channel deleted');
     return { success: true };
   }
 
   @Post(':id/toggle-mandatory')
   async toggleMandatory(@Param('id') id: number) {
+    console.log('=== CHANNELS: TOGGLE MANDATORY ===', id);
     return this.channelsService.toggleMandatory(id);
   }
 
   @Post(':id/toggle-active')
   async toggleActive(@Param('id') id: number) {
+    console.log('=== CHANNELS: TOGGLE ACTIVE ===', id);
     return this.channelsService.toggleActive(id);
   }
 }

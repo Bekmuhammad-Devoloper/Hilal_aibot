@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TelegrafModule } from 'nestjs-telegraf';
+import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
 
 // Modules
@@ -28,6 +29,9 @@ import { GrammarRequest } from './modules/stats/entities/grammar-request.entity'
       isGlobal: true,
       envFilePath: '.env',
     }),
+    
+    // Schedule for cron jobs
+    ScheduleModule.forRoot(),
     
     // Database
     TypeOrmModule.forRootAsync({

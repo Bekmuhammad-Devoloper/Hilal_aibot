@@ -22,13 +22,16 @@ export class Post {
   messageId: string;
 
   @Column({ default: 'draft' })
-  status: string; // draft, sent, failed
+  status: string; // draft, sent, failed, scheduled
 
   @Column({ type: 'datetime', nullable: true })
   scheduledAt: Date;
 
   @Column({ type: 'datetime', nullable: true })
   sentAt: Date;
+
+  @Column({ default: false })
+  broadcastToUsers: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

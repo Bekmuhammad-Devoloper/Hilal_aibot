@@ -86,6 +86,10 @@ export const postsApi = {
   delete: (id: number) => api.delete(`/api/posts/${id}`).then(res => res.data),
   send: (id: number, channelId: string) =>
     api.post(`/api/posts/${id}/send`, { channelId }).then(res => res.data),
+  broadcast: (id: number) =>
+    api.post(`/api/posts/${id}/broadcast`).then(res => res.data),
+  schedule: (id: number, scheduledAt: string, broadcastToUsers?: boolean) =>
+    api.post(`/api/posts/${id}/schedule`, { scheduledAt, broadcastToUsers }).then(res => res.data),
 };
 
 export default api;

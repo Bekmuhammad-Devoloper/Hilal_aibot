@@ -1,34 +1,42 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { postsApi, channelsApi } from '@/lib/api';
+import { postsApi } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiFileText, FiSend, FiImage, FiClock, FiCheck } from 'react-icons/fi';
-
-interface Channel {
-  id: number;
-  name: string;
-  username: string;
-}
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiFileText, FiSend, FiImage, FiClock, FiCheck, FiUsers, FiRadio } from 'react-icons/fi';
 
 interface Post {
   id: number;
   content: string;
-  imageUrl?: string;
-  channelId: number;
-  channel?: Channel;
-  isPublished: boolean;
+  mediaUrl?: string;
+  type: string;
+  channelId?: string;
+  status: string;
   scheduledAt?: string;
+  sentAt?: string;
+  broadcastToUsers?: boolean;
   createdAt: string;
 }
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
-  const [formData, setFormData] = useState({ content: '', imageUrl: '', channelId: 0, isPublished: false, scheduledAt: '' });
+  const [formData, setFormData] = useState({ 
+    content: '', 
+    mediaUrl: '', 
+    type: 'text',
+    status: 'draft'
+  });
+  const [scheduleData, setScheduleData] = useState({
+    scheduledAt: '',
+    broadcastToUsers: true
+  });
+  const [broadcasting, setBroadcasting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -36,10 +44,12 @@ export default function PostsPage() {
 
   const fetchData = async () => {
     try {
-      const [postsData, channelsData] = await Promise.all([postsApi.getAll(), channelsApi.getAll()]);
-      setPosts(postsData);
-      setChannels(channelsData);
-    } catch {
+      console.log('Fetching posts...');
+      const postsData = await postsApi.getAll();
+      console.log('Posts:', postsData);
+      setPosts(Array.isArray(postsData) ? postsData : []);
+    } catch (error) {
+      console.error('Fetch error:', error);
       toast.error("Ma'lumotlarni yuklashda xatolik!");
     } finally {
       setLoading(false);
@@ -49,17 +59,18 @@ export default function PostsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const data = { ...formData, channelId: Number(formData.channelId) };
+      console.log('Submitting post:', formData);
       if (editingPost) {
-        await postsApi.update(editingPost.id, data);
+        await postsApi.update(editingPost.id, formData);
         toast.success("Post yangilandi!");
       } else {
-        await postsApi.create(data);
+        await postsApi.create(formData);
         toast.success("Post yaratildi!");
       }
       fetchData();
       closeModal();
-    } catch {
+    } catch (error) {
+      console.error('Submit error:', error);
       toast.error("Xatolik yuz berdi!");
     }
   };
@@ -75,24 +86,58 @@ export default function PostsPage() {
     }
   };
 
-  const handlePublish = async (post: Post) => {
+  const handleBroadcast = async () => {
+    if (!selectedPost) return;
+    setBroadcasting(true);
     try {
-      await postsApi.update(post.id, { ...post, isPublished: true });
-      toast.success("Post nashr qilindi!");
+      console.log('Broadcasting post:', selectedPost.id);
+      const result = await postsApi.broadcast(selectedPost.id);
+      console.log('Broadcast result:', result);
+      toast.success(`Post ${result.sent} foydalanuvchiga yuborildi! (${result.failed} ta muvaffaqiyatsiz)`);
       fetchData();
-    } catch {
-      toast.error("Nashr qilishda xatolik!");
+      setShowBroadcastModal(false);
+      setSelectedPost(null);
+    } catch (error) {
+      console.error('Broadcast error:', error);
+      toast.error("Broadcast qilishda xatolik!");
+    } finally {
+      setBroadcasting(false);
+    }
+  };
+
+  const handleSchedule = async () => {
+    if (!selectedPost || !scheduleData.scheduledAt) return;
+    try {
+      console.log('Scheduling post:', selectedPost.id, scheduleData);
+      await postsApi.schedule(selectedPost.id, scheduleData.scheduledAt, scheduleData.broadcastToUsers);
+      toast.success("Post rejalashtirildi!");
+      fetchData();
+      setShowScheduleModal(false);
+      setSelectedPost(null);
+      setScheduleData({ scheduledAt: '', broadcastToUsers: true });
+    } catch (error) {
+      console.error('Schedule error:', error);
+      toast.error("Rejalashtirishda xatolik!");
     }
   };
 
   const openModal = (post?: Post) => {
-    const channelsArray = Array.isArray(channels) ? channels : [];
     if (post) {
       setEditingPost(post);
-      setFormData({ content: post.content, imageUrl: post.imageUrl || '', channelId: post.channelId, isPublished: post.isPublished, scheduledAt: post.scheduledAt || '' });
+      setFormData({ 
+        content: post.content, 
+        mediaUrl: post.mediaUrl || '', 
+        type: post.type || 'text',
+        status: post.status
+      });
     } else {
       setEditingPost(null);
-      setFormData({ content: '', imageUrl: '', channelId: channelsArray[0]?.id || 0, isPublished: false, scheduledAt: '' });
+      setFormData({ 
+        content: '', 
+        mediaUrl: '', 
+        type: 'text',
+        status: 'draft'
+      });
     }
     setShowModal(true);
   };
@@ -100,7 +145,31 @@ export default function PostsPage() {
   const closeModal = () => {
     setShowModal(false);
     setEditingPost(null);
-    setFormData({ content: '', imageUrl: '', channelId: 0, isPublished: false, scheduledAt: '' });
+    setFormData({ content: '', mediaUrl: '', type: 'text', status: 'draft' });
+  };
+
+  const openBroadcastModal = (post: Post) => {
+    setSelectedPost(post);
+    setShowBroadcastModal(true);
+  };
+
+  const openScheduleModal = (post: Post) => {
+    setSelectedPost(post);
+    setScheduleData({ scheduledAt: '', broadcastToUsers: true });
+    setShowScheduleModal(true);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch(status) {
+      case 'sent':
+        return <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Yuborilgan</span>;
+      case 'scheduled':
+        return <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Rejalashtirilgan</span>;
+      case 'failed':
+        return <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Xatolik</span>;
+      default:
+        return <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Qoralama</span>;
+    }
   };
 
   if (loading) {
@@ -112,8 +181,9 @@ export default function PostsPage() {
   }
 
   const postsArray = Array.isArray(posts) ? posts : [];
-  const publishedCount = postsArray.filter(p => p.isPublished).length;
-  const draftCount = postsArray.filter(p => !p.isPublished).length;
+  const sentCount = postsArray.filter(p => p.status === 'sent').length;
+  const draftCount = postsArray.filter(p => p.status === 'draft').length;
+  const scheduledCount = postsArray.filter(p => p.status === 'scheduled').length;
 
   return (
     <div className="space-y-6">
@@ -125,12 +195,16 @@ export default function PostsPage() {
               <FiFileText className="w-8 h-8" />
               Postlar Boshqaruvi
             </h1>
-            <p className="text-purple-100 mt-2">Kanallarga post yarating va boshqaring</p>
+            <p className="text-purple-100 mt-2">Postlarni yarating, broadcast qiling va rejalashtiring</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 text-center">
-              <div className="text-2xl font-bold">{publishedCount}</div>
-              <div className="text-xs text-purple-100">Nashr qilingan</div>
+              <div className="text-2xl font-bold">{sentCount}</div>
+              <div className="text-xs text-purple-100">Yuborilgan</div>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 text-center">
+              <div className="text-2xl font-bold">{scheduledCount}</div>
+              <div className="text-xs text-purple-100">Rejalashtirilgan</div>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 text-center">
               <div className="text-2xl font-bold">{draftCount}</div>
@@ -155,16 +229,14 @@ export default function PostsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {postsArray.map((post) => (
             <div key={post.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100 overflow-hidden group">
-              {post.imageUrl && (
+              {post.mediaUrl && (
                 <div className="h-40 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-                  <img src={post.imageUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={post.mediaUrl} alt="" className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${post.isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {post.isPublished ? 'Nashr qilingan' : 'Qoralama'}
-                  </span>
+                  {getStatusBadge(post.status)}
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => openModal(post)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" title="Tahrirlash">
                       <FiEdit2 className="w-4 h-4" />
@@ -175,13 +247,37 @@ export default function PostsPage() {
                   </div>
                 </div>
                 <p className="text-gray-700 mb-4 line-clamp-3">{post.content}</p>
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                  <span className="text-sm text-purple-600 font-medium">@{post.channel?.username || 'Noma\'lum'}</span>
-                  {!post.isPublished && (
-                    <button onClick={() => handlePublish(post)} className="flex items-center gap-1 text-sm text-green-600 hover:text-green-700 font-medium" title="Nashr qilish">
-                      <FiSend className="w-4 h-4" />
-                      Nashr qilish
-                    </button>
+                
+                {post.scheduledAt && (
+                  <div className="text-sm text-blue-600 mb-3 flex items-center gap-1">
+                    <FiClock className="w-4 h-4" />
+                    {new Date(post.scheduledAt).toLocaleString('uz-UZ')}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-100">
+                  {post.status === 'draft' && (
+                    <>
+                      {/* Broadcast Button */}
+                      <button 
+                        onClick={() => openBroadcastModal(post)} 
+                        className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium bg-purple-50 px-3 py-1.5 rounded-lg" 
+                        title="Barcha foydalanuvchilarga yuborish"
+                      >
+                        <FiRadio className="w-4 h-4" />
+                        Broadcast
+                      </button>
+                      
+                      {/* Schedule Button */}
+                      <button 
+                        onClick={() => openScheduleModal(post)} 
+                        className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium bg-blue-50 px-3 py-1.5 rounded-lg" 
+                        title="Rejalashtirish"
+                      >
+                        <FiClock className="w-4 h-4" />
+                        Reja
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -190,7 +286,7 @@ export default function PostsPage() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Create/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -204,44 +300,43 @@ export default function PostsPage() {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Kanal</label>
-                <select value={formData.channelId} onChange={(e) => setFormData({ ...formData, channelId: Number(e.target.value) })} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" required>
-                  <option value="">Kanal tanlang</option>
-                  {(Array.isArray(channels) ? channels : []).map((ch) => (
-                    <option key={ch.id} value={ch.id}>{ch.name} (@{ch.username})</option>
-                  ))}
+                <label className="block text-sm font-medium text-gray-700 mb-2">Post turi</label>
+                <select 
+                  value={formData.type} 
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })} 
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  title="Post turini tanlang"
+                >
+                  <option value="text">Matn</option>
+                  <option value="photo">Rasm</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Post matni</label>
-                <textarea value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} rows={5} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none" placeholder="Post matnini kiriting..." required />
+                <textarea 
+                  value={formData.content} 
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })} 
+                  rows={5} 
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none" 
+                  placeholder="Post matnini kiriting (HTML qo'llab-quvvatlanadi)..." 
+                  required 
+                />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <FiImage className="w-4 h-4 inline mr-1" />
-                  Rasm URL (ixtiyoriy)
-                </label>
-                <input type="url" value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" placeholder="https://example.com/image.jpg" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <FiClock className="w-4 h-4 inline mr-1" />
-                  Rejali vaqt (ixtiyoriy)
-                </label>
-                <input type="datetime-local" value={formData.scheduledAt} onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" />
-              </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              {formData.type === 'photo' && (
                 <div>
-                  <div className="font-medium text-gray-800 flex items-center gap-2">
-                    <FiCheck className="w-4 h-4" />
-                    Darhol nashr qilish
-                  </div>
-                  <div className="text-sm text-gray-500">Postni hoziroq kanalga yuborish</div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FiImage className="w-4 h-4 inline mr-1" />
+                    Rasm URL
+                  </label>
+                  <input 
+                    type="url" 
+                    value={formData.mediaUrl} 
+                    onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })} 
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" 
+                    placeholder="https://example.com/image.jpg" 
+                  />
                 </div>
-                <button type="button" onClick={() => setFormData({ ...formData, isPublished: !formData.isPublished })} className={`relative w-14 h-8 rounded-full transition-colors ${formData.isPublished ? 'bg-purple-500' : 'bg-gray-300'}`}>
-                  <span className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${formData.isPublished ? 'right-1' : 'left-1'}`}></span>
-                </button>
-              </div>
+              )}
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium">
                   Bekor qilish
@@ -251,6 +346,133 @@ export default function PostsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Broadcast Modal */}
+      {showBroadcastModal && selectedPost && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <FiRadio className="w-6 h-6 text-purple-600" />
+                  Broadcast
+                </h2>
+                <button onClick={() => setShowBroadcastModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Yopish">
+                  <FiX className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-purple-50 p-4 rounded-xl">
+                <div className="flex items-center gap-3 text-purple-700">
+                  <FiUsers className="w-8 h-8" />
+                  <div>
+                    <div className="font-semibold">Barcha foydalanuvchilarga yuborish</div>
+                    <div className="text-sm text-purple-600">Bu post botdagi barcha foydalanuvchilarga yuboriladi</div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <div className="text-sm text-gray-600 mb-2">Post matni:</div>
+                <p className="text-gray-800 line-clamp-3">{selectedPost.content}</p>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button 
+                  onClick={() => setShowBroadcastModal(false)} 
+                  className="flex-1 px-4 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Bekor qilish
+                </button>
+                <button 
+                  onClick={handleBroadcast} 
+                  disabled={broadcasting}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:opacity-90 transition-opacity font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {broadcasting ? (
+                    <>
+                      <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                      Yuborilmoqda...
+                    </>
+                  ) : (
+                    <>
+                      <FiSend className="w-5 h-5" />
+                      Yuborish
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Schedule Modal */}
+      {showScheduleModal && selectedPost && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <FiClock className="w-6 h-6 text-blue-600" />
+                  Rejalashtirish
+                </h2>
+                <button onClick={() => setShowScheduleModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Yopish">
+                  <FiX className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Yuborish vaqti</label>
+                <input 
+                  type="datetime-local" 
+                  value={scheduleData.scheduledAt} 
+                  onChange={(e) => setScheduleData({ ...scheduleData, scheduledAt: e.target.value })} 
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  title="Yuborish vaqtini tanlang"
+                  required
+                />
+              </div>
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                <div>
+                  <div className="font-medium text-gray-800 flex items-center gap-2">
+                    <FiUsers className="w-4 h-4" />
+                    Barcha foydalanuvchilarga
+                  </div>
+                  <div className="text-sm text-gray-500">Broadcast qilish</div>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setScheduleData({ ...scheduleData, broadcastToUsers: !scheduleData.broadcastToUsers })} 
+                  className={`relative w-14 h-8 rounded-full transition-colors ${scheduleData.broadcastToUsers ? 'bg-blue-500' : 'bg-gray-300'}`}
+                >
+                  <span className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${scheduleData.broadcastToUsers ? 'right-1' : 'left-1'}`}></span>
+                </button>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <div className="text-sm text-gray-600 mb-2">Post matni:</div>
+                <p className="text-gray-800 line-clamp-3">{selectedPost.content}</p>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button 
+                  onClick={() => setShowScheduleModal(false)} 
+                  className="flex-1 px-4 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Bekor qilish
+                </button>
+                <button 
+                  onClick={handleSchedule} 
+                  disabled={!scheduleData.scheduledAt}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:opacity-90 transition-opacity font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <FiCheck className="w-5 h-5" />
+                  Rejalashtirish
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

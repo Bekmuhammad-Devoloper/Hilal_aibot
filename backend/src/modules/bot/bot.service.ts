@@ -142,22 +142,58 @@ export class BotService {
   }
 
   async broadcastMessage(text: string): Promise<{ sent: number; failed: number }> {
-    const users = await this.botUserRepository.find();
+    const users = await this.botUserRepository.find({ where: { isBlocked: false } });
     let sent = 0;
     let failed = 0;
 
+    console.log('[BotService] Broadcasting message to', users.length, 'users');
+
     for (const user of users) {
       try {
-        await this.bot.telegram.sendMessage(user.telegramId, text);
+        await this.bot.telegram.sendMessage(user.telegramId, text, { parse_mode: 'HTML' });
         sent++;
         // Rate limiting - wait 50ms between messages
         await new Promise(resolve => setTimeout(resolve, 50));
-      } catch (error) {
+      } catch (error: any) {
         failed++;
-        console.error(`Failed to send to ${user.telegramId}:`, error);
+        console.error(`[BotService] Failed to send to ${user.telegramId}:`, error.message);
+        // Mark user as blocked if they blocked the bot
+        if (error.message?.includes('blocked') || error.code === 403) {
+          user.isBlocked = true;
+          await this.botUserRepository.save(user);
+        }
       }
     }
 
+    console.log('[BotService] Broadcast completed: sent', sent, 'failed', failed);
+    return { sent, failed };
+  }
+
+  async broadcastPhoto(photo: string, caption?: string): Promise<{ sent: number; failed: number }> {
+    const users = await this.botUserRepository.find({ where: { isBlocked: false } });
+    let sent = 0;
+    let failed = 0;
+
+    console.log('[BotService] Broadcasting photo to', users.length, 'users');
+
+    for (const user of users) {
+      try {
+        await this.bot.telegram.sendPhoto(user.telegramId, photo, { caption, parse_mode: 'HTML' });
+        sent++;
+        // Rate limiting - wait 50ms between messages
+        await new Promise(resolve => setTimeout(resolve, 50));
+      } catch (error: any) {
+        failed++;
+        console.error(`[BotService] Failed to send photo to ${user.telegramId}:`, error.message);
+        // Mark user as blocked if they blocked the bot
+        if (error.message?.includes('blocked') || error.code === 403) {
+          user.isBlocked = true;
+          await this.botUserRepository.save(user);
+        }
+      }
+    }
+
+    console.log('[BotService] Photo broadcast completed: sent', sent, 'failed', failed);
     return { sent, failed };
   }
 }

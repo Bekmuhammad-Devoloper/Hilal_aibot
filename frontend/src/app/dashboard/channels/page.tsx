@@ -7,9 +7,11 @@ import { FiPlus, FiEdit2, FiTrash2, FiX, FiHash, FiUsers, FiLink } from 'react-i
 
 interface Channel {
   id: number;
-  name: string;
-  username: string;
+  channelId: string;
+  channelUsername: string;
+  title: string;
   isMandatory: boolean;
+  isActive: boolean;
   createdAt: string;
 }
 
@@ -18,7 +20,12 @@ export default function ChannelsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
-  const [formData, setFormData] = useState({ name: '', username: '', isMandatory: true });
+  const [formData, setFormData] = useState({ 
+    title: '', 
+    channelUsername: '', 
+    channelId: '',
+    isMandatory: true 
+  });
 
   useEffect(() => {
     fetchChannels();
@@ -26,9 +33,12 @@ export default function ChannelsPage() {
 
   const fetchChannels = async () => {
     try {
+      console.log('Fetching channels...');
       const data = await channelsApi.getAll();
-      setChannels(data);
-    } catch {
+      console.log('Channels data:', data);
+      setChannels(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Fetch channels error:', error);
       toast.error("Kanallarni yuklashda xatolik!");
     } finally {
       setLoading(false);
@@ -38,16 +48,24 @@ export default function ChannelsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // channelId ni username dan olamiz agar bo'sh bo'lsa
+      const submitData = {
+        ...formData,
+        channelId: formData.channelId || `@${formData.channelUsername}`,
+      };
+      console.log('Submitting channel:', submitData);
+      
       if (editingChannel) {
-        await channelsApi.update(editingChannel.id, formData);
+        await channelsApi.update(editingChannel.id, submitData);
         toast.success("Kanal yangilandi!");
       } else {
-        await channelsApi.create(formData);
+        await channelsApi.create(submitData);
         toast.success("Kanal qo'shildi!");
       }
       fetchChannels();
       closeModal();
-    } catch {
+    } catch (error) {
+      console.error('Submit error:', error);
       toast.error("Xatolik yuz berdi!");
     }
   };
@@ -66,10 +84,15 @@ export default function ChannelsPage() {
   const openModal = (channel?: Channel) => {
     if (channel) {
       setEditingChannel(channel);
-      setFormData({ name: channel.name, username: channel.username, isMandatory: channel.isMandatory });
+      setFormData({ 
+        title: channel.title, 
+        channelUsername: channel.channelUsername, 
+        channelId: channel.channelId,
+        isMandatory: channel.isMandatory 
+      });
     } else {
       setEditingChannel(null);
-      setFormData({ name: '', username: '', isMandatory: true });
+      setFormData({ title: '', channelUsername: '', channelId: '', isMandatory: true });
     }
     setShowModal(true);
   };
@@ -77,7 +100,7 @@ export default function ChannelsPage() {
   const closeModal = () => {
     setShowModal(false);
     setEditingChannel(null);
-    setFormData({ name: '', username: '', isMandatory: true });
+    setFormData({ title: '', channelUsername: '', channelId: '', isMandatory: true });
   };
 
   if (loading) {
@@ -128,21 +151,21 @@ export default function ChannelsPage() {
             <div key={channel.id} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-gray-100 group">
               <div className="flex items-start justify-between mb-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                  {channel.name.charAt(0).toUpperCase()}
+                  {channel.title.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => openModal(channel)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+                  <button onClick={() => openModal(channel)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" title="Tahrirlash">
                     <FiEdit2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(channel.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
+                  <button onClick={() => handleDelete(channel.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors" title="O'chirish">
                     <FiTrash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-1">{channel.name}</h3>
-              <a href={`https://t.me/${channel.username}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-700 flex items-center gap-1 mb-4">
+              <h3 className="text-lg font-bold text-gray-800 mb-1">{channel.title}</h3>
+              <a href={`https://t.me/${channel.channelUsername}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-700 flex items-center gap-1 mb-4">
                 <FiLink className="w-4 h-4" />
-                @{channel.username}
+                @{channel.channelUsername}
               </a>
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${channel.isMandatory ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
@@ -164,7 +187,7 @@ export default function ChannelsPage() {
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-800">{editingChannel ? 'Kanalni tahrirlash' : 'Yangi kanal'}</h2>
-                <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Yopish">
                   <FiX className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
@@ -172,13 +195,13 @@ export default function ChannelsPage() {
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Kanal nomi</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" placeholder="Masalan: Hilal Edu" required />
+                <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" placeholder="Masalan: Hilal Edu" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
-                  <input type="text" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" placeholder="username" required />
+                  <input type="text" value={formData.channelUsername} onChange={(e) => setFormData({ ...formData, channelUsername: e.target.value })} className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" placeholder="username" required />
                 </div>
               </div>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
