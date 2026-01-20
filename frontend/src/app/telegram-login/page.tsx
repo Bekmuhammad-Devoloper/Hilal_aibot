@@ -35,24 +35,33 @@ function TelegramLoginContent() {
         console.log('Request body:', JSON.stringify(requestBody));
         
         const response = await api.post('/api/auth/telegram-login', requestBody);
-        console.log('Response:', response.data);
+        console.log('Full response:', response);
+        console.log('Response data:', response.data);
         const data = response.data;
         
         if (data.access_token) {
+          console.log('Token received:', data.access_token);
+          console.log('User:', data.user);
+          
+          // Token saqlash
+          localStorage.setItem('token', data.access_token);
           setAuth(data.access_token, data.user);
           setStatus('success');
           
+          console.log('Redirecting to dashboard...');
           // Dashboard'ga yo'naltirish
           setTimeout(() => {
             router.push('/dashboard');
-          }, 1500);
+          }, 1000);
         } else {
+          console.error('No access_token in response:', data);
           throw new Error('Token olinmadi');
         }
       } catch (err: any) {
         console.error('Telegram login error:', err);
+        console.error('Error response:', err.response);
         setStatus('error');
-        setError(err.response?.data?.message || 'Login xatoligi yuz berdi');
+        setError(err.response?.data?.message || err.message || 'Login xatoligi yuz berdi');
       }
     };
 

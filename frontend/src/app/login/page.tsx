@@ -24,8 +24,18 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      console.log('=== LOGIN DEBUG ===');
+      console.log('Username:', username);
+      console.log('Password:', password);
+      
       const response = await authApi.login(username, password);
-      const { access_token, user } = response.data;
+      console.log('Login response:', response);
+      
+      // authApi.login allaqachon res.data qaytaradi
+      const { access_token, user } = response;
+
+      console.log('Token:', access_token);
+      console.log('User:', user);
 
       localStorage.setItem('token', access_token);
       setAuth(access_token, user);
@@ -33,7 +43,9 @@ export default function LoginPage() {
       toast.success('Muvaffaqiyatli kirdingiz!');
       router.push('/dashboard');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login xatoligi');
+      console.error('Login error:', error);
+      console.error('Error response:', error.response);
+      toast.error(error.response?.data?.message || error.message || 'Login xatoligi');
     } finally {
       setLoading(false);
     }
@@ -44,8 +56,14 @@ export default function LoginPage() {
     setTelegramLoading(true);
 
     try {
+      console.log('=== TELEGRAM LOGIN DEBUG ===');
+      console.log('Code:', telegramCode);
+      
       const response = await authApi.telegramLogin(telegramCode);
-      const { access_token, user } = response.data;
+      console.log('Telegram login response:', response);
+      
+      // authApi.telegramLogin allaqachon res.data qaytaradi
+      const { access_token, user } = response;
 
       localStorage.setItem('token', access_token);
       setAuth(access_token, user);
@@ -53,6 +71,7 @@ export default function LoginPage() {
       toast.success('Telegram orqali kirdingiz!');
       router.push('/dashboard');
     } catch (error: any) {
+      console.error('Telegram login error:', error);
       toast.error(error.response?.data?.message || 'Kod xato yoki muddati tugagan');
     } finally {
       setTelegramLoading(false);
