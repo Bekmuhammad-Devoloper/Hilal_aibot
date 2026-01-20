@@ -283,8 +283,9 @@ Eslatma: Qo'lyozma bo'lsa ham har bir so'zni diqqat bilan o'qi!`;
       // FormData yaratish
       const formData = new FormData();
       
-      // Audio file ni blob qilib qo'shish
-      const audioBlob = new Blob([audioBuffer], { type: 'audio/ogg' });
+      // Audio file ni Uint8Array ga convert qilib blob yaratish
+      const uint8Array = new Uint8Array(audioBuffer.buffer, audioBuffer.byteOffset, audioBuffer.length);
+      const audioBlob = new Blob([uint8Array], { type: 'audio/ogg' });
       formData.append('file', audioBlob, 'audio.ogg');
       formData.append('model', 'whisper-1');
       formData.append('language', langCode);
