@@ -20,7 +20,9 @@ export class AuthController {
 
   @Post('telegram-login')
   async telegramLogin(@Body() dto: TelegramLoginDto) {
-    return this.authService.loginWithTelegramCode(dto.code);
+    console.log('Telegram login request body:', dto);
+    console.log('Code from body:', dto?.code);
+    return this.authService.loginWithTelegramCode(dto?.code);
   }
 
   @Get('profile')
