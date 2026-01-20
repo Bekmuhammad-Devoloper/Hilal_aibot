@@ -33,7 +33,10 @@ export class BotUpdate {
   }
 
   private isAdmin(userId: number): boolean {
-    const adminIds = this.configService.get('ADMIN_IDS', '').split(',').map((id: string) => id.trim());
+    // To'g'ridan-to'g'ri process.env dan o'qiymiz
+    const adminIdsEnv = process.env.ADMIN_IDS || this.configService.get('ADMIN_IDS', '');
+    const adminIds = adminIdsEnv.split(',').map((id: string) => id.trim());
+    console.log('ADMIN_IDS:', adminIdsEnv, '| User ID:', userId, '| Is Admin:', adminIds.includes(String(userId)));
     return adminIds.includes(String(userId));
   }
 
