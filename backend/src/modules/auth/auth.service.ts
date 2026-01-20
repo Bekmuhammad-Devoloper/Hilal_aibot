@@ -69,8 +69,11 @@ export class AuthService {
       throw new UnauthorizedException('Code expired');
     }
     
-    // Admin ID larni tekshirish
-    const adminIds = this.configService.get('ADMIN_IDS', '').split(',');
+    // Admin ID larni tekshirish - process.env dan ham o'qiymiz
+    const adminIdsEnv = process.env.ADMIN_IDS || this.configService.get('ADMIN_IDS') || '';
+    const adminIds = adminIdsEnv.split(',').map(id => id.trim());
+    console.log('Auth ADMIN_IDS:', adminIdsEnv, '| Telegram ID:', data.telegramId, '| Is Admin:', adminIds.includes(data.telegramId));
+    
     if (!adminIds.includes(data.telegramId)) {
       throw new UnauthorizedException('Not authorized as admin');
     }

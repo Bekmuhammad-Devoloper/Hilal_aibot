@@ -33,8 +33,12 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        // telegram-login sahifasida redirect qilmaymiz
+        const isTelegramLogin = window.location.pathname.includes('telegram-login');
+        if (!isTelegramLogin) {
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
