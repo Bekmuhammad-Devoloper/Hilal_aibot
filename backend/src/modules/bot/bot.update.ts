@@ -52,10 +52,14 @@ export class BotUpdate {
 
     const adminPanelUrl = this.configService.get('ADMIN_PANEL_URL', 'http://localhost:3001');
     
+    // Generate auto-login code for admin
+    const loginCode = await this.authService.generateTelegramLoginCode(String(user.id));
+    const autoLoginUrl = `${adminPanelUrl}/telegram-login?code=${loginCode}`;
+    
     const keyboard = {
       inline_keyboard: [
         [
-          { text: '🖥 Admin Panel', url: `${adminPanelUrl}/login` },
+          { text: '🖥 Admin Panelga Kirish', url: autoLoginUrl },
         ],
         [
           { text: '📊 Statistika', callback_data: 'admin_stats' },
@@ -78,9 +82,7 @@ export class BotUpdate {
 📅 Bugun: ${stats.todayRequests}
 
 🔗 Admin panelga kirish uchun pastdagi tugmani bosing.
-
-*Login:* admin
-*Parol:* admin123
+⏱ Link 5 daqiqa amal qiladi.
 `;
 
     await ctx.replyWithMarkdown(message, { reply_markup: keyboard });
