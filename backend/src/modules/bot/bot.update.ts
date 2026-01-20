@@ -419,46 +419,60 @@ export class BotUpdate {
 
     const processingMsg = await ctx.reply(t(lang, 'processingImage'));
 
-    let filePath: string | null = null;
-
     try {
       const startTime = Date.now();
       
       // Get largest photo
       const photo = photos[photos.length - 1];
       const fileLink = await ctx.telegram.getFileLink(photo.file_id);
+      const imageUrl = fileLink.href;
 
-      // OCR orqali rasmdan matn
-      filePath = await this.ocrService.downloadImage(fileLink.href);
-      const text = await this.ocrService.extractText(filePath, lang);
+      let result;
+      let text = '';
+
+      // GPT-4o Vision - rasmni to'g'ridan-to'g'ri o'qiydi (qo'lyozma ham!)
+      if (this.openaiService.isAvailable()) {
+        try {
+          console.log('[Bot] Using GPT-4o Vision for image analysis...');
+          result = await this.openaiService.analyzeImage(imageUrl, lang);
+          text = result.originalText;
+        } catch (e: any) {
+          console.log('[Bot] GPT-4o Vision failed:', e.message);
+        }
+      }
+
+      // Fallback: OCR + Gemini/Grammar
+      if (!result || !text) {
+        console.log('[Bot] Falling back to OCR...');
+        const filePath = await this.ocrService.downloadImage(imageUrl);
+        try {
+          text = await this.ocrService.extractText(filePath, lang);
+          
+          if (text && text.trim().length > 0) {
+            // GPT-4o yoki Gemini bilan tekshirish
+            if (this.openaiService.isAvailable()) {
+              try {
+                result = await this.openaiService.correctGrammar(text, lang);
+              } catch (e) {}
+            }
+            if (!result) {
+              try {
+                result = await this.geminiService.correctGrammar(text, lang);
+              } catch (e) {}
+            }
+            if (!result) {
+              result = await this.grammarService.correctGrammar(text, lang);
+            }
+          }
+        } finally {
+          this.ocrService.cleanup(filePath);
+        }
+      }
 
       if (!text || text.trim().length === 0) {
         await ctx.deleteMessage(processingMsg.message_id);
         await ctx.reply(t(lang, 'errorNoText'));
         return;
-      }
-
-      // GPT-4o birinchi, keyin Gemini, keyin GrammarService fallback
-      let result;
-      
-      if (this.openaiService.isAvailable()) {
-        try {
-          result = await this.openaiService.correctGrammar(text, lang);
-        } catch (e) {
-          console.log('[Bot] GPT-4o failed for image');
-        }
-      }
-      
-      if (!result) {
-        try {
-          result = await this.geminiService.correctGrammar(text, lang);
-        } catch (e) {
-          console.log('[Bot] Gemini failed for image');
-        }
-      }
-      
-      if (!result) {
-        result = await this.grammarService.correctGrammar(text, lang);
       }
 
       await this.botService.incrementRequestCount(String(user.id), 'image');
@@ -467,8 +481,8 @@ export class BotUpdate {
         telegramId: String(user.id),
         type: 'image',
         originalText: text,
-        correctedText: result.correctedText,
-        errorsCount: result.errorsCount,
+        correctedText: result?.correctedText || text,
+        errorsCount: result?.errorsCount || 0,
         processingTime: Date.now() - startTime,
       });
 
@@ -477,10 +491,10 @@ export class BotUpdate {
       } catch {}
 
       const resultData = {
-        hasErrors: result.errorsCount > 0,
-        errorsCount: result.errorsCount,
+        hasErrors: (result?.errorsCount || 0) > 0,
+        errorsCount: result?.errorsCount || 0,
         original: text,
-        corrected: result.correctedText,
+        corrected: result?.correctedText || text,
       };
 
       await ctx.replyWithMarkdown(t(lang, 'result', resultData));
@@ -490,10 +504,6 @@ export class BotUpdate {
         await ctx.deleteMessage(processingMsg.message_id);
       } catch {}
       await ctx.reply(t(lang, 'errorImage'));
-    } finally {
-      if (filePath) {
-        this.ocrService.cleanup(filePath);
-      }
     }
   }
 

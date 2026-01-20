@@ -135,9 +135,125 @@ Agar matnda xato bo'lmasa, errors massivini bo'sh qoldir.`;
     }
   }
 
-  // OCR dan kelgan rasmni tekshirish
-  async correctImageText(imageText: string, language: string = 'uz'): Promise<OpenAIResult> {
-    return this.correctGrammar(imageText, language);
+  // GPT-4o Vision - rasmdan matn o'qish va grammatik tekshirish (qo'lyozma ham!)
+  async analyzeImage(imageUrl: string, language: string = 'uz'): Promise<OpenAIResult> {
+    if (!this.apiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    const langNames: { [key: string]: string } = {
+      uz: "O'zbek",
+      ru: 'Русский',
+      en: 'English',
+      tr: 'Türkçe',
+    };
+
+    const langName = langNames[language] || "O'zbek";
+
+    const systemPrompt = `Sen professional ${langName} tili bo'yicha matn tanuvchi va grammatika tekshiruvchisisisan.
+
+Sening vazifang:
+1. Rasmdagi matnni (bosma yoki QO'LYOZMA) diqqat bilan o'qish
+2. Matnni grammatik xatolar uchun tekshirish
+3. Xatolarni tuzatish va tushuntirish
+
+MUHIM: Javobingni FAQAT quyidagi JSON formatida ber:
+{
+  "extractedText": "rasmdan o'qilgan asl matn",
+  "correctedText": "grammatik jihatdan to'g'rilangan matn",
+  "errors": [
+    {
+      "original": "xato so'z",
+      "corrected": "to'g'ri variant",
+      "explanation": "qisqa tushuntirish"
+    }
+  ]
+}
+
+Eslatma: Qo'lyozma bo'lsa ham har bir so'zni diqqat bilan o'qi!`;
+
+    try {
+      console.log('[OpenAI Vision] Analyzing image...');
+      
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { 
+              role: 'user', 
+              content: [
+                { 
+                  type: 'text', 
+                  text: `Bu rasmdagi ${langName} tilidagi matnni o'qi va grammatik tekshir. Qo'lyozma bo'lsa ham diqqat bilan o'qi.` 
+                },
+                { 
+                  type: 'image_url', 
+                  image_url: { url: imageUrl } 
+                }
+              ]
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 3000,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[OpenAI Vision] API error:', response.status, errorData);
+        throw new Error(`OpenAI Vision API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+
+      if (!content) {
+        throw new Error('No response from OpenAI Vision');
+      }
+
+      console.log('[OpenAI Vision] Response received, parsing...');
+
+      // JSON ni parse qilish
+      let result;
+      try {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          result = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No JSON found in response');
+        }
+      } catch (parseError) {
+        console.error('[OpenAI Vision] JSON parse error, returning raw text');
+        // Agar JSON parse bo'lmasa, matnni qaytarish
+        return {
+          originalText: content,
+          correctedText: content,
+          errorsCount: 0,
+          errors: [],
+        };
+      }
+
+      const errors = result.errors || [];
+      const extractedText = result.extractedText || '';
+      
+      console.log('[OpenAI Vision] Image analysis completed. Text length:', extractedText.length, 'Errors:', errors.length);
+
+      return {
+        originalText: extractedText,
+        correctedText: result.correctedText || extractedText,
+        errorsCount: errors.length,
+        errors: errors,
+      };
+    } catch (error: any) {
+      console.error('[OpenAI Vision] Error:', error.message);
+      throw error;
+    }
   }
 
   // Audio dan kelgan matnni tekshirish
