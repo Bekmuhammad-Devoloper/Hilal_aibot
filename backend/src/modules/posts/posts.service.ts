@@ -120,14 +120,25 @@ export class PostsService implements OnModuleInit {
     }
 
     try {
+      // Inline keyboard agar button mavjud bo'lsa
+      const keyboard = (post.buttonText && post.buttonUrl) ? {
+        inline_keyboard: [[{ text: post.buttonText, url: post.buttonUrl }]]
+      } : undefined;
+
+      // Media URL yoki path
+      const mediaSource = post.mediaPath || post.mediaUrl;
+
       let result: { sent: number; failed: number };
 
-      if (post.type === 'photo' && post.mediaUrl) {
+      if (post.type === 'video' && mediaSource) {
+        console.log('[PostsService] Broadcasting video to all users');
+        result = await this.botService.broadcastVideo(mediaSource, post.content, keyboard);
+      } else if (post.type === 'photo' && mediaSource) {
         console.log('[PostsService] Broadcasting photo to all users');
-        result = await this.botService.broadcastPhoto(post.mediaUrl, post.content);
+        result = await this.botService.broadcastPhoto(mediaSource, post.content, keyboard);
       } else {
         console.log('[PostsService] Broadcasting text to all users');
-        result = await this.botService.broadcastMessage(post.content);
+        result = await this.botService.broadcastMessage(post.content, keyboard);
       }
 
       post.status = 'sent';

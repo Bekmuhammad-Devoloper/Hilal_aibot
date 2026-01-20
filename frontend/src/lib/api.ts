@@ -91,6 +91,13 @@ export const postsApi = {
     api.post(`/api/posts/${id}/broadcast`).then(res => res.data),
   schedule: (id: number, scheduledAt: string, broadcastToUsers?: boolean) =>
     api.post(`/api/posts/${id}/schedule`, { scheduledAt, broadcastToUsers }).then(res => res.data),
+  upload: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/api/posts/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(res => res.data);
+  },
 };
 
 export default api;

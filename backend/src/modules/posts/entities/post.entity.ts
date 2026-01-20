@@ -12,8 +12,17 @@ export class Post {
   @Column({ nullable: true })
   mediaUrl: string;
 
+  @Column({ nullable: true })
+  mediaPath: string; // Local file path for uploaded media
+
   @Column({ default: 'text' })
   type: string; // text, photo, video, document
+
+  @Column({ nullable: true })
+  buttonText: string; // Button text
+
+  @Column({ nullable: true })
+  buttonUrl: string; // Button URL
 
   @Column({ nullable: true })
   channelId: string;

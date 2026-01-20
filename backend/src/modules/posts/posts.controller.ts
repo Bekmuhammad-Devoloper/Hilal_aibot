@@ -1,5 +1,8 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PostsService } from './posts.service';
 import { CreatePostDto, UpdatePostDto, SendPostDto } from './dto/post.dto';
@@ -106,5 +109,56 @@ export class PostsController {
       console.error('Schedule error:', error.message);
       throw error;
     }
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads/posts',
+      filename: (req, file, callback) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = extname(file.originalname);
+        callback(null, `${uniqueSuffix}${ext}`);
+      },
+    }),
+    fileFilter: (req, file, callback) => {
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'];
+      if (allowedMimes.includes(file.mimetype)) {
+        callback(null, true);
+      } else {
+        callback(new BadRequestException('Faqat rasm (jpg, png, gif, webp) va video (mp4, webm) formatlar qabul qilinadi'), false);
+      }
+    },
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB
+    },
+  }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  async uploadMedia(@UploadedFile() file: Express.Multer.File) {
+    console.log('=== POSTS: UPLOAD MEDIA ===');
+    if (!file) {
+      throw new BadRequestException('Fayl yuklanmadi');
+    }
+    console.log('Uploaded file:', file.filename, 'Size:', file.size, 'Type:', file.mimetype);
+    
+    const isVideo = file.mimetype.startsWith('video/');
+    return {
+      filename: file.filename,
+      path: `/uploads/posts/${file.filename}`,
+      type: isVideo ? 'video' : 'photo',
+      size: file.size,
+      mimetype: file.mimetype,
+    };
   }
 }

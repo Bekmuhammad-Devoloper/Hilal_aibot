@@ -1,15 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { postsApi } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiFileText, FiSend, FiImage, FiClock, FiCheck, FiUsers, FiRadio } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiFileText, FiSend, FiImage, FiClock, FiCheck, FiUsers, FiRadio, FiVideo, FiLink, FiUpload } from 'react-icons/fi';
 
 interface Post {
   id: number;
   content: string;
   mediaUrl?: string;
+  mediaPath?: string;
   type: string;
+  buttonText?: string;
+  buttonUrl?: string;
   channelId?: string;
   status: string;
   scheduledAt?: string;
@@ -30,6 +33,8 @@ export default function PostsPage() {
     content: '', 
     mediaUrl: '', 
     type: 'text',
+    buttonText: '',
+    buttonUrl: '',
     status: 'draft'
   });
   const [scheduleData, setScheduleData] = useState({
@@ -37,6 +42,9 @@ export default function PostsPage() {
     broadcastToUsers: true
   });
   const [broadcasting, setBroadcasting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{path: string; type: string} | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchData();
@@ -56,15 +64,45 @@ export default function PostsPage() {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const result = await postsApi.upload(file);
+      console.log('Upload result:', result);
+      setUploadedFile({ path: result.path, type: result.type });
+      setFormData(prev => ({ 
+        ...prev, 
+        type: result.type,
+        mediaUrl: result.path 
+      }));
+      toast.success('Fayl yuklandi!');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Fayl yuklashda xatolik!');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      console.log('Submitting post:', formData);
+      const postData = {
+        content: formData.content,
+        type: formData.type,
+        mediaUrl: uploadedFile?.path || formData.mediaUrl || undefined,
+        buttonText: formData.buttonText || undefined,
+        buttonUrl: formData.buttonUrl || undefined,
+      };
+      console.log('Submitting post:', postData);
       if (editingPost) {
-        await postsApi.update(editingPost.id, formData);
+        await postsApi.update(editingPost.id, postData);
         toast.success("Post yangilandi!");
       } else {
-        await postsApi.create(formData);
+        await postsApi.create(postData);
         toast.success("Post yaratildi!");
       }
       fetchData();
@@ -128,16 +166,24 @@ export default function PostsPage() {
         content: post.content, 
         mediaUrl: post.mediaUrl || '', 
         type: post.type || 'text',
+        buttonText: post.buttonText || '',
+        buttonUrl: post.buttonUrl || '',
         status: post.status
       });
+      if (post.mediaUrl || post.mediaPath) {
+        setUploadedFile({ path: post.mediaPath || post.mediaUrl || '', type: post.type });
+      }
     } else {
       setEditingPost(null);
       setFormData({ 
         content: '', 
         mediaUrl: '', 
         type: 'text',
+        buttonText: '',
+        buttonUrl: '',
         status: 'draft'
       });
+      setUploadedFile(null);
     }
     setShowModal(true);
   };
@@ -145,7 +191,8 @@ export default function PostsPage() {
   const closeModal = () => {
     setShowModal(false);
     setEditingPost(null);
-    setFormData({ content: '', mediaUrl: '', type: 'text', status: 'draft' });
+    setFormData({ content: '', mediaUrl: '', type: 'text', buttonText: '', buttonUrl: '', status: 'draft' });
+    setUploadedFile(null);
   };
 
   const openBroadcastModal = (post: Post) => {
@@ -229,14 +276,27 @@ export default function PostsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {postsArray.map((post) => (
             <div key={post.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100 overflow-hidden group">
-              {post.mediaUrl && (
+              {(post.mediaUrl || post.mediaPath) && post.type === 'photo' && (
                 <div className="h-40 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-                  <img src={post.mediaUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={post.mediaPath || post.mediaUrl} alt="" className="w-full h-full object-cover" />
+                </div>
+              )}
+              {(post.mediaUrl || post.mediaPath) && post.type === 'video' && (
+                <div className="h-40 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                  <div className="text-center">
+                    <FiVideo className="w-12 h-12 text-purple-400 mx-auto mb-2" />
+                    <span className="text-sm text-purple-600">Video</span>
+                  </div>
                 </div>
               )}
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  {getStatusBadge(post.status)}
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(post.status)}
+                    {post.type === 'photo' && <FiImage className="w-4 h-4 text-green-500" title="Rasm" />}
+                    {post.type === 'video' && <FiVideo className="w-4 h-4 text-blue-500" title="Video" />}
+                    {post.buttonUrl && <FiLink className="w-4 h-4 text-purple-500" title="Tugma" />}
+                  </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => openModal(post)} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" title="Tahrirlash">
                       <FiEdit2 className="w-4 h-4" />
@@ -247,6 +307,14 @@ export default function PostsPage() {
                   </div>
                 </div>
                 <p className="text-gray-700 mb-4 line-clamp-3">{post.content}</p>
+                
+                {post.buttonText && post.buttonUrl && (
+                  <div className="mb-3">
+                    <a href={post.buttonUrl} target="_blank" rel="noreferrer" className="inline-block px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600">
+                      {post.buttonText}
+                    </a>
+                  </div>
+                )}
                 
                 {post.scheduledAt && (
                   <div className="text-sm text-blue-600 mb-3 flex items-center gap-1">
@@ -299,18 +367,35 @@ export default function PostsPage() {
               </div>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              {/* Post turi */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Post turi</label>
-                <select 
-                  value={formData.type} 
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })} 
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  title="Post turini tanlang"
-                >
-                  <option value="text">Matn</option>
-                  <option value="photo">Rasm</option>
-                </select>
+                <div className="flex gap-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setFormData({ ...formData, type: 'text' })} 
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${formData.type === 'text' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-gray-300'}`}
+                  >
+                    <FiFileText className="w-5 h-5" /> Matn
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => setFormData({ ...formData, type: 'photo' })} 
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${formData.type === 'photo' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-gray-300'}`}
+                  >
+                    <FiImage className="w-5 h-5" /> Rasm
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => setFormData({ ...formData, type: 'video' })} 
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${formData.type === 'video' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 hover:border-gray-300'}`}
+                  >
+                    <FiVideo className="w-5 h-5" /> Video
+                  </button>
+                </div>
               </div>
+
+              {/* Matn */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Post matni</label>
                 <textarea 
@@ -322,21 +407,106 @@ export default function PostsPage() {
                   required 
                 />
               </div>
-              {formData.type === 'photo' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <FiImage className="w-4 h-4 inline mr-1" />
-                    Rasm URL
+
+              {/* Media yuklash (Rasm/Video) */}
+              {(formData.type === 'photo' || formData.type === 'video') && (
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    {formData.type === 'photo' ? '🖼️ Rasm' : '🎬 Video'}
                   </label>
-                  <input 
-                    type="url" 
-                    value={formData.mediaUrl} 
-                    onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })} 
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" 
-                    placeholder="https://example.com/image.jpg" 
-                  />
+                  
+                  {/* File upload */}
+                  <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-purple-400 transition-colors">
+                    <input 
+                      type="file" 
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept={formData.type === 'photo' ? 'image/*' : 'video/*'}
+                      className="hidden"
+                    />
+                    {uploadedFile ? (
+                      <div className="space-y-2">
+                        {formData.type === 'photo' ? (
+                          <img src={uploadedFile.path} alt="Preview" className="max-h-40 mx-auto rounded-lg" />
+                        ) : (
+                          <div className="flex items-center justify-center gap-2 text-green-600">
+                            <FiCheck className="w-5 h-5" />
+                            <span>Video yuklandi</span>
+                          </div>
+                        )}
+                        <button 
+                          type="button" 
+                          onClick={() => { setUploadedFile(null); setFormData({...formData, mediaUrl: ''}); }}
+                          className="text-sm text-red-500 hover:underline"
+                        >
+                          O'chirish
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="flex items-center justify-center gap-2 w-full py-4 text-gray-500 hover:text-purple-600"
+                      >
+                        {uploading ? (
+                          <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <>
+                            <FiUpload className="w-6 h-6" />
+                            <span>{formData.type === 'photo' ? 'Rasm yuklash' : 'Video yuklash'}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* URL orqali */}
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">yoki URL:</span>
+                    <input 
+                      type="url" 
+                      value={formData.mediaUrl} 
+                      onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })} 
+                      className="w-full pl-20 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" 
+                      placeholder="https://example.com/media..." 
+                    />
+                  </div>
                 </div>
               )}
+
+              {/* Button (havola) */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  <FiLink className="w-4 h-4 inline mr-1" />
+                  Tugma (ixtiyoriy)
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <input 
+                    type="text" 
+                    value={formData.buttonText} 
+                    onChange={(e) => setFormData({ ...formData, buttonText: e.target.value })} 
+                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" 
+                    placeholder="Tugma matni" 
+                  />
+                  <input 
+                    type="url" 
+                    value={formData.buttonUrl} 
+                    onChange={(e) => setFormData({ ...formData, buttonUrl: e.target.value })} 
+                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" 
+                    placeholder="https://example.com" 
+                  />
+                </div>
+                {formData.buttonText && formData.buttonUrl && (
+                  <div className="p-3 bg-gray-50 rounded-xl">
+                    <span className="text-sm text-gray-500">Ko'rinishi:</span>
+                    <div className="mt-2">
+                      <span className="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">{formData.buttonText}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium">
                   Bekor qilish

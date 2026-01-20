@@ -16,6 +16,16 @@ export class CreatePostDto {
   @IsString()
   @IsOptional()
   mediaUrl?: string;
+
+  @ApiProperty({ example: 'Batafsil' })
+  @IsString()
+  @IsOptional()
+  buttonText?: string;
+
+  @ApiProperty({ example: 'https://example.com/link' })
+  @IsString()
+  @IsOptional()
+  buttonUrl?: string;
 }
 
 export class UpdatePostDto {
@@ -33,6 +43,16 @@ export class UpdatePostDto {
   @IsString()
   @IsOptional()
   mediaUrl?: string;
+
+  @ApiProperty({ example: 'Batafsil' })
+  @IsString()
+  @IsOptional()
+  buttonText?: string;
+
+  @ApiProperty({ example: 'https://example.com/link' })
+  @IsString()
+  @IsOptional()
+  buttonUrl?: string;
 }
 
 export class SendPostDto {

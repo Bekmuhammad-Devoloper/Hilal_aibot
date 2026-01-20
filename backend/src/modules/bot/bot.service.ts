@@ -141,7 +141,7 @@ export class BotService {
     });
   }
 
-  async broadcastMessage(text: string): Promise<{ sent: number; failed: number }> {
+  async broadcastMessage(text: string, keyboard?: any): Promise<{ sent: number; failed: number }> {
     const users = await this.botUserRepository.find({ where: { isBlocked: false } });
     let sent = 0;
     let failed = 0;
@@ -150,7 +150,10 @@ export class BotService {
 
     for (const user of users) {
       try {
-        await this.bot.telegram.sendMessage(user.telegramId, text, { parse_mode: 'HTML' });
+        await this.bot.telegram.sendMessage(user.telegramId, text, { 
+          parse_mode: 'HTML',
+          reply_markup: keyboard,
+        });
         sent++;
         // Rate limiting - wait 50ms between messages
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -169,7 +172,7 @@ export class BotService {
     return { sent, failed };
   }
 
-  async broadcastPhoto(photo: string, caption?: string): Promise<{ sent: number; failed: number }> {
+  async broadcastPhoto(photo: string, caption?: string, keyboard?: any): Promise<{ sent: number; failed: number }> {
     const users = await this.botUserRepository.find({ where: { isBlocked: false } });
     let sent = 0;
     let failed = 0;
@@ -178,7 +181,11 @@ export class BotService {
 
     for (const user of users) {
       try {
-        await this.bot.telegram.sendPhoto(user.telegramId, photo, { caption, parse_mode: 'HTML' });
+        await this.bot.telegram.sendPhoto(user.telegramId, photo, { 
+          caption, 
+          parse_mode: 'HTML',
+          reply_markup: keyboard,
+        });
         sent++;
         // Rate limiting - wait 50ms between messages
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -194,6 +201,38 @@ export class BotService {
     }
 
     console.log('[BotService] Photo broadcast completed: sent', sent, 'failed', failed);
+    return { sent, failed };
+  }
+
+  async broadcastVideo(video: string, caption?: string, keyboard?: any): Promise<{ sent: number; failed: number }> {
+    const users = await this.botUserRepository.find({ where: { isBlocked: false } });
+    let sent = 0;
+    let failed = 0;
+
+    console.log('[BotService] Broadcasting video to', users.length, 'users');
+
+    for (const user of users) {
+      try {
+        await this.bot.telegram.sendVideo(user.telegramId, video, { 
+          caption, 
+          parse_mode: 'HTML',
+          reply_markup: keyboard,
+        });
+        sent++;
+        // Rate limiting - wait 100ms for videos (larger files)
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error: any) {
+        failed++;
+        console.error(`[BotService] Failed to send video to ${user.telegramId}:`, error.message);
+        // Mark user as blocked if they blocked the bot
+        if (error.message?.includes('blocked') || error.code === 403) {
+          user.isBlocked = true;
+          await this.botUserRepository.save(user);
+        }
+      }
+    }
+
+    console.log('[BotService] Video broadcast completed: sent', sent, 'failed', failed);
     return { sent, failed };
   }
 }
