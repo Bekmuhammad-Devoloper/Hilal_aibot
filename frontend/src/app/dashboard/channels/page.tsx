@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { channelsApi } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiHash, FiUsers, FiLink, FiImage, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiHash, FiUsers, FiLink, FiSearch } from 'react-icons/fi';
 
 interface Channel {
   id: number;
@@ -282,24 +282,6 @@ export default function ChannelsPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Kanal nomi</label>
                 <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" placeholder="Masalan: Hilal Edu" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <FiImage className="w-4 h-4 inline mr-1" />
-                  Rasm URL (ixtiyoriy)
-                </label>
-                <input 
-                  type="url" 
-                  value={formData.photoUrl} 
-                  onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })} 
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
-                  placeholder="https://example.com/channel-photo.jpg" 
-                />
-                {formData.photoUrl && (
-                  <div className="mt-2">
-                    <img src={formData.photoUrl} alt="Preview" className="w-16 h-16 rounded-xl object-cover" onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} />
-                  </div>
-                )}
               </div>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div>
