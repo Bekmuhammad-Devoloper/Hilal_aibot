@@ -78,8 +78,11 @@ export default function DashboardPage() {
         statsApi.getDashboard(),
         statsApi.getDaily(7),
       ]);
-      setStats(statsRes.data);
-      setDailyStats(dailyRes.data);
+      console.log('Dashboard stats:', statsRes);
+      console.log('Daily stats:', dailyRes);
+      // statsApi allaqachon res.data qaytaradi
+      setStats(statsRes);
+      setDailyStats(dailyRes || []);
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {

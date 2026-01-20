@@ -71,9 +71,10 @@ export default function StatsPage() {
         statsApi.getRecentRequests(20),
         statsApi.getDaily(14),
       ]);
-      setTopUsers(topRes.data);
-      setRecentRequests(recentRes.data);
-      setDailyStats(dailyRes.data);
+      // statsApi allaqachon res.data qaytaradi
+      setTopUsers(topRes || []);
+      setRecentRequests(recentRes || []);
+      setDailyStats(dailyRes || []);
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {
