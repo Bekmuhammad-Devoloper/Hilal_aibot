@@ -38,23 +38,38 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
+    console.log('validateUser called with username:', username);
     const user = await this.usersService.findByUsername(username);
-    if (user && await this.usersService.validatePassword(user, password)) {
-      const { password, ...result } = user;
-      return result;
+    console.log('User found:', user ? 'yes' : 'no');
+    
+    if (user) {
+      const isPasswordValid = await this.usersService.validatePassword(user, password);
+      console.log('Password valid:', isPasswordValid);
+      
+      if (isPasswordValid) {
+        const { password, ...result } = user;
+        return result;
+      }
     }
     return null;
   }
 
   async login(username: string, password: string) {
+    console.log('Login attempt for:', username);
     const user = await this.validateUser(username, password);
+    console.log('Validated user:', user ? user.username : 'null');
+    
     if (!user) {
+      console.log('Login failed: Invalid credentials');
       throw new UnauthorizedException('Invalid credentials');
     }
     
     const payload = { sub: user.id, username: user.username, role: user.role };
+    const token = this.jwtService.sign(payload);
+    console.log('Login successful, JWT token generated');
+    
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: token,
       user: {
         id: user.id,
         username: user.username,

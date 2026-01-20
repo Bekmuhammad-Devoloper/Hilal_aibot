@@ -19,7 +19,20 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto.username, loginDto.password);
+    console.log('=== LOGIN DEBUG ===');
+    console.log('Login request body:', loginDto);
+    console.log('Username:', loginDto?.username);
+    console.log('Password:', loginDto?.password ? '***' : 'undefined');
+    console.log('====================');
+    
+    try {
+      const result = await this.authService.login(loginDto.username, loginDto.password);
+      console.log('Login successful, token generated');
+      return result;
+    } catch (error: any) {
+      console.error('Login failed:', error.message);
+      throw error;
+    }
   }
 
   @Post('telegram-login')
