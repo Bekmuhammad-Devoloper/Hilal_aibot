@@ -21,7 +21,6 @@ const navigation = [
   { name: 'Postlar', href: '/dashboard/posts', icon: FiSend },
   { name: 'Kanallar', href: '/dashboard/channels', icon: FiHash },
   { name: 'Statistika', href: '/dashboard/stats', icon: FiBarChart2 },
-  { name: 'Dasturchi', href: '/dashboard/developer', icon: FiUser },
 ];
 
 export default function DashboardLayout({
