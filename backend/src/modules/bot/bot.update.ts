@@ -248,6 +248,9 @@ export class BotUpdate {
     try {
       const startTime = Date.now();
       
+      // Grammatik tekshiruv FAQAT turkcha uchun ishlaydi
+      const grammarLang = 'tr';
+      
       // GPT-4o birinchi, keyin Gemini, keyin GrammarService fallback
       let result;
       let usedModel = 'unknown';
@@ -256,7 +259,7 @@ export class BotUpdate {
       if (this.openaiService.isAvailable()) {
         try {
           console.log('[Bot] Using GPT-4o for grammar check...');
-          result = await this.openaiService.correctGrammar(text, lang);
+          result = await this.openaiService.correctGrammar(text, grammarLang);
           usedModel = 'GPT-4o';
         } catch (openaiError: any) {
           console.log('[Bot] GPT-4o failed:', openaiError.message);
@@ -267,7 +270,7 @@ export class BotUpdate {
       if (!result) {
         try {
           console.log('[Bot] Falling back to Gemini...');
-          result = await this.geminiService.correctGrammar(text, lang);
+          result = await this.geminiService.correctGrammar(text, grammarLang);
           usedModel = 'Gemini';
         } catch (geminiError: any) {
           console.log('[Bot] Gemini failed:', geminiError.message);
@@ -277,7 +280,7 @@ export class BotUpdate {
       // 3. GrammarService (last fallback)
       if (!result) {
         console.log('[Bot] Falling back to GrammarService...');
-        result = await this.grammarService.correctGrammar(text, lang);
+        result = await this.grammarService.correctGrammar(text, grammarLang);
         usedModel = 'Basic';
       }
       
@@ -339,6 +342,9 @@ export class BotUpdate {
       // Get file
       const fileLink = await ctx.telegram.getFileLink(voice.file_id);
       
+      // Grammatik tekshiruv FAQAT turkcha uchun
+      const grammarLang = 'tr';
+      
       // OpenAI Whisper - eng aniq ovozni matnga o'tkazuvchi
       let text = '';
       let usedTranscriber = '';
@@ -346,7 +352,7 @@ export class BotUpdate {
       if (this.openaiService.isAvailable()) {
         try {
           console.log('[Bot] Using OpenAI Whisper for voice transcription...');
-          text = await this.openaiService.transcribeAudioFromUrl(fileLink.href, lang);
+          text = await this.openaiService.transcribeAudioFromUrl(fileLink.href, grammarLang);
           usedTranscriber = 'Whisper';
         } catch (e: any) {
           console.log('[Bot] OpenAI Whisper failed:', e.message);
@@ -356,7 +362,7 @@ export class BotUpdate {
       // Fallback: SpeechToTextService
       if (!text) {
         console.log('[Bot] Falling back to SpeechToTextService...');
-        text = await this.speechToTextService.transcribe(fileLink.href, lang);
+        text = await this.speechToTextService.transcribe(fileLink.href, grammarLang);
         usedTranscriber = 'SpeechToText';
       }
       
@@ -373,7 +379,7 @@ export class BotUpdate {
       
       if (this.openaiService.isAvailable()) {
         try {
-          result = await this.openaiService.correctGrammar(text, lang);
+          result = await this.openaiService.correctGrammar(text, grammarLang);
         } catch (e) {
           console.log('[Bot] GPT-4o failed for voice');
         }
@@ -381,14 +387,14 @@ export class BotUpdate {
       
       if (!result) {
         try {
-          result = await this.geminiService.correctGrammar(text, lang);
+          result = await this.geminiService.correctGrammar(text, grammarLang);
         } catch (e) {
           console.log('[Bot] Gemini failed for voice');
         }
       }
       
       if (!result) {
-        result = await this.grammarService.correctGrammar(text, lang);
+        result = await this.grammarService.correctGrammar(text, grammarLang);
       }
 
       await this.botService.incrementRequestCount(String(user.id), 'voice');
@@ -442,6 +448,9 @@ export class BotUpdate {
     try {
       const startTime = Date.now();
       
+      // Grammatik tekshiruv FAQAT turkcha uchun
+      const grammarLang = 'tr';
+      
       // Get largest photo
       const photo = photos[photos.length - 1];
       const fileLink = await ctx.telegram.getFileLink(photo.file_id);
@@ -454,7 +463,7 @@ export class BotUpdate {
       if (this.openaiService.isAvailable()) {
         try {
           console.log('[Bot] Using GPT-4o Vision for image analysis...');
-          result = await this.openaiService.analyzeImage(imageUrl, lang);
+          result = await this.openaiService.analyzeImage(imageUrl, grammarLang);
           text = result.originalText;
         } catch (e: any) {
           console.log('[Bot] GPT-4o Vision failed:', e.message);
@@ -466,22 +475,22 @@ export class BotUpdate {
         console.log('[Bot] Falling back to OCR...');
         const filePath = await this.ocrService.downloadImage(imageUrl);
         try {
-          text = await this.ocrService.extractText(filePath, lang);
+          text = await this.ocrService.extractText(filePath, grammarLang);
           
           if (text && text.trim().length > 0) {
             // GPT-4o yoki Gemini bilan tekshirish
             if (this.openaiService.isAvailable()) {
               try {
-                result = await this.openaiService.correctGrammar(text, lang);
+                result = await this.openaiService.correctGrammar(text, grammarLang);
               } catch (e) {}
             }
             if (!result) {
               try {
-                result = await this.geminiService.correctGrammar(text, lang);
+                result = await this.geminiService.correctGrammar(text, grammarLang);
               } catch (e) {}
             }
             if (!result) {
-              result = await this.grammarService.correctGrammar(text, lang);
+              result = await this.grammarService.correctGrammar(text, grammarLang);
             }
           }
         } finally {
