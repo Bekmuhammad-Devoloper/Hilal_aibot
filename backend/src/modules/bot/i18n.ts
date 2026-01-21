@@ -104,18 +104,20 @@ Siz admin sifatida ro'yxatdan o'tgansiz!
   },
 
   ru: {
-    welcome: (name: string) => `🎓 *Здравствуйте, ${name}!*
+    welcome: (name: string) => `Merhaba.....
 
-📝 Я бот для исправления грамматических ошибок.
+Men Hilal Edu turk tili markazining yordamchi assistant botiman!
 
-*Отправьте мне:*
-• ✍️ Текст - проверю грамматику
-• 🎤 Голосовое сообщение - переведу в текст и проверю
-• 🖼 Изображение - распознаю текст и проверю
+Grammatik xatolarni tekshiraman.
 
-*Выбор языка:* /language
+*Quyidagilarni yuboring:*
+- Matn - grammatik xatolarni tekshiraman
+- Ovozli xabar - matnga aylantirib tekshiraman
+- Rasm - rasmdagi matnni oqib tekshiraman
 
-🔗 Помощь: /help`,
+*Til tanlash:* /language
+
+*Qollanma:* /help`,
 
     help: `📖 *Помощь*
 
@@ -204,18 +206,20 @@ ${data.hasErrors ? `*Исходный текст:*\n${data.original}\n\n*Исп�
   },
 
   en: {
-    welcome: (name: string) => `🎓 *Hello, ${name}!*
+    welcome: (name: string) => `Merhaba.....
 
-📝 I'm a grammar correction bot.
+Men Hilal Edu turk tili markazining yordamchi assistant botiman!
 
-*Send me:*
-• ✍️ Text - I'll check grammar
-• 🎤 Voice message - I'll convert to text and check
-• 🖼 Image - I'll read text and check
+Grammatik xatolarni tekshiraman.
 
-*Select language:* /language
+*Quyidagilarni yuboring:*
+- Matn - grammatik xatolarni tekshiraman
+- Ovozli xabar - matnga aylantirib tekshiraman
+- Rasm - rasmdagi matnni oqib tekshiraman
 
-🔗 Help: /help`,
+*Til tanlash:* /language
+
+*Qollanma:* /help`,
 
     help: `📖 *Help*
 
@@ -304,20 +308,22 @@ You are authorized as an administrator!
   },
 
   tr: {
-    welcome: (name: string) => `🎓 *Merhaba, ${name}!*
+    welcome: (name: string) => `Merhaba.....
 
-📝 Ben dilbilgisi düzeltme botuyum.
+Men Hilal Edu turk tili markazining yordamchi assistant botiman!
 
-*Bana gönderin:*
-• ✍️ Metin - dilbilgisini kontrol ederim
-• 🎤 Sesli mesaj - metne çevirip kontrol ederim
-• 🖼 Görsel - metni okuyup kontrol ederim
+Grammatik xatolarni tekshiraman.
 
-*Dil seçimi:* /language
+*Quyidagilarni yuboring:*
+- Matn - grammatik xatolarni tekshiraman
+- Ovozli xabar - matnga aylantirib tekshiraman
+- Rasm - rasmdagi matnni oqib tekshiraman
 
-🔗 Yardım: /help`,
+*Til tanlash:* /language
 
-    help: `📖 *Yardım*
+*Qollanma:* /help`,
+
+    help: `*Yardim*
 
 *Bot özellikleri:*
 
