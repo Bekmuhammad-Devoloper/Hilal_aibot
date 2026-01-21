@@ -4,20 +4,20 @@ export const messages = {
   uz: {
     welcome: (name: string) => `Merhaba.....
 
-� Men Hilal Edu turk tili markazining yordamchi assistant botiman!
+Men Hilal Edu turk tili markazining yordamchi assistant botiman!
 
-📝 Grammatik xatolarni tekshiraman.
+Grammatik xatolarni tekshiraman.
 
 *Quyidagilarni yuboring:*
-• ✍️ Matn - grammatik xatolarni tekshiraman
-• 🎤 Ovozli xabar - matnga aylantirib tekshiraman
-• 🖼 Rasm - rasmdagi matnni o'qib tekshiraman
+- Matn - grammatik xatolarni tekshiraman
+- Ovozli xabar - matnga aylantirib tekshiraman
+- Rasm - rasmdagi matnni oqib tekshiraman
 
 *Til tanlash:* /language
 
-🔗 Qo'llanma: /help`,
+*Qollanma:* /help`,
 
-    help: `📖 *Yordam*
+    help: `*Yordam*
 
 *Bot imkoniyatlari:*
 
