@@ -4,7 +4,7 @@ export const messages = {
   uz: {
     welcome: (name: string) => `Merhaba.....
 
-�🇷 Men Hilal Edu turk tili markazining yordamchi assistant botiman!
+� Men Hilal Edu turk tili markazining yordamchi assistant botiman!
 
 📝 Grammatik xatolarni tekshiraman.
 
