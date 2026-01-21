@@ -1,96 +1,190 @@
-// Turkish only - simple i18n// Faqat Turkcha - Hilal Edu Turk Tili Markazi// Faqat Turkcha - Hilal Edu Turk Tili Markazi// Internationalization - Ko'p tilli qo'llab-quvvatlash
+export type Language = 'tr';// Turkish only - simple i18n// Faqat Turkcha - Hilal Edu Turk Tili Markazi// Faqat Turkcha - Hilal Edu Turk Tili Markazi// Internationalization - Ko'p tilli qo'llab-quvvatlash
 
-export type Language = 'tr';
+
+
+export const defaultLanguage: Language = 'tr';export type Language = 'tr';
 
 
 
 const messages = {
 
-  tr: {export const messages = {
-
-    welcome: (name: string) => `Merhaba.....
-
   tr: {
 
-Men Hilal Edu turk tili markazining yordamchi assistant botiman!`,
-
-    welcome: (name: string) => `Merhaba.....export const messages = {export const messages = {
-
-    help: `*Yardim*
+    welcome: (name: string) => `Merhaba.....const messages = {
 
 
 
-Metin gonderin, dilbilgisi hatalarini kontrol ederim.
-
-Men Hilal Edu turk tili markazining yordamchi assistant botiman!`,  tr: {  uz: {
-
-*Desteklenen formatlar:*
-
-- Metin mesaji
-
-- Sesli mesaj
-
-- Resim (el yazisi dahil)    help: `*Yardim*    welcome: (name: string) => `Merhaba.....    welcome: (name: string) => `Merhaba.....
+Men Hilal Edu turk tili markazining yordamchi assistant botiman!`,  tr: {export const messages = {
 
 
 
-*Komutlar:*
+    help: `*Yardim*    welcome: (name: string) => `Merhaba.....
+
+
+
+Metin gonderin, dilbilgisi hatalarini kontrol ederim.  tr: {
+
+
+
+*Komutlar:*Men Hilal Edu turk tili markazining yordamchi assistant botiman!`,
 
 /start - Baslat
 
-/stats - Istatistikler*Bot ozellikleri:*
+/stats - Istatistikler    welcome: (name: string) => `Merhaba.....export const messages = {export const messages = {
 
 /help - Yardim`,
 
-
+    help: `*Yardim*
 
     processing: 'Kontrol ediliyor...',
 
-    processingVoice: 'Sesli mesaj isleniyor...',1. *Metin kontrolu*Ben Hilal Edu Turk dili merkezinin yardimci asistaniyim!Men Hilal Edu turk tili markazining yordamchi assistant botiman!
+    processingVoice: 'Sesli mesaj isleniyor...',
 
     processingImage: 'Resim isleniyor...',
 
-    processingVideo: 'Video isleniyor...',Metin gonderin, bot dilbilgisi hatalarini bulup duzeltir.
+    processingVideo: 'Video isleniyor...',Metin gonderin, dilbilgisi hatalarini kontrol ederim.
 
 
 
-    noErrors: 'Dilbilgisi hatasi bulunamadi! Metin dogru.',
+    noErrors: 'Dilbilgisi hatasi bulunamadi! Metin dogru.',Men Hilal Edu turk tili markazining yordamchi assistant botiman!`,  tr: {  uz: {
 
 
 
-    result: (data: any) => `*Sonuc*2. *Sesli mesaj*
+    result: (data: any) => `*Sonuc**Desteklenen formatlar:*
 
 
 
-${data.hasErrors ? `*${data.errorsCount} hata bulundu*` : '*Hata bulunamadi*'}Sesli mesaj gonderin, bot metne cevirip kontrol eder.Dilbilgisi hatalarini kontrol ediyorum.Grammatik xatolarni tekshiraman.
+${data.hasErrors ? `*Orijinal:*\n${data.original}\n\n*Duzeltilmis:*\n${data.corrected}` : `*Metin:*\n${data.original}`}`,- Metin mesaji
 
 
 
-${data.hasErrors ? `*Orijinal:*\n${data.original}\n\n*Duzeltilmis:*\n${data.corrected}` : `*Metin:*\n${data.original}`}`,
+    stats: (data: any) => `*Istatistikleriniz*- Sesli mesaj
 
 
 
-    stats: (data: any) => `*Istatistikleriniz*3. *Resim*
+Metin: ${data.textRequests}- Resim (el yazisi dahil)    help: `*Yardim*    welcome: (name: string) => `Merhaba.....    welcome: (name: string) => `Merhaba.....
+
+Ses: ${data.voiceRequests}
+
+Resimler: ${data.imageRequests}
 
 
 
-Toplam: ${data.totalRequests}Metinli resim gonderin, bot resimdeki metni okuyup kontrol eder.
+Kayit: ${data.createdAt}`,*Komutlar:*
 
-Metin: ${data.textRequests}
 
-Ses: ${data.voiceRequests}*Bana gonderin:**Quyidagilarni yuboring:*
 
-Resim: ${data.imageRequests}
+    errorProcessing: 'Bir hata olustu. Tekrar deneyin.',/start - Baslat
+
+    errorVoice: 'Sesli mesaj isleme hatasi.',
+
+    errorImage: 'Resim isleme hatasi.',/stats - Istatistikler*Bot ozellikleri:*
+
+    errorVideo: 'Video isleme hatasi.',
+
+    errorNoText: 'Resimde metin bulunamadi.',/help - Yardim`,
+
+
+
+    subscribeFirst: 'Botu kullanmak icin kanallara abone olun:',
+
+    checkSubscription: 'Aboneligi kontrol et',
+
+    subscriptionConfirmed: 'Abonelik onaylandi!',    processing: 'Kontrol ediliyor...',
+
+    notSubscribed: 'Henuz abone olmamissiniz!',
+
+    processingVoice: 'Sesli mesaj isleniyor...',1. *Metin kontrolu*Ben Hilal Edu Turk dili merkezinin yardimci asistaniyim!Men Hilal Edu turk tili markazining yordamchi assistant botiman!
+
+    adminOnly: 'Bu komut sadece yoneticiler icindir.',
+
+    adminPanel: `*Admin Paneli*    processingImage: 'Resim isleniyor...',
+
+
+
+Yonetici olarak giris yaptiniz!    processingVideo: 'Video isleniyor...',Metin gonderin, bot dilbilgisi hatalarini bulup duzeltir.
+
+
 
 *Komutlar:*
 
-Kayit: ${data.createdAt}`,
+/admin - Admin paneli
 
-/start - Botu baslat- Metin - dilbilgisi hatalarini kontrol ederim- Matn - grammatik xatolarni tekshiraman
+/broadcast [mesaj] - Mesaj gonder    noErrors: 'Dilbilgisi hatasi bulunamadi! Metin dogru.',
 
-    errorProcessing: 'Bir hata olustu. Tekrar deneyin.',
+/adminstats - Bot istatistikleri
 
-    errorVoice: 'Sesli mesaj isleme hatasi.',/stats - Istatistikleriniz
+/channels - Kanal listesi`,
+
+
+
+    adminStats: (data: any) => `*Bot Istatistikleri*    result: (data: any) => `*Sonuc*2. *Sesli mesaj*
+
+
+
+*Kullanicilar:*
+
+Toplam: ${data.totalUsers}
+
+Bugun: ${data.todayUsers}${data.hasErrors ? `*${data.errorsCount} hata bulundu*` : '*Hata bulunamadi*'}Sesli mesaj gonderin, bot metne cevirip kontrol eder.Dilbilgisi hatalarini kontrol ediyorum.Grammatik xatolarni tekshiraman.
+
+Aktif (7 gun): ${data.activeUsers}
+
+
+
+*Istekler:*
+
+Toplam: ${data.totalRequests}${data.hasErrors ? `*Orijinal:*\n${data.original}\n\n*Duzeltilmis:*\n${data.corrected}` : `*Metin:*\n${data.original}`}`,
+
+Metin: ${data.textRequests}
+
+Ses: ${data.voiceRequests}
+
+Resim: ${data.imageRequests}`,
+
+    stats: (data: any) => `*Istatistikleriniz*3. *Resim*
+
+    noChannels: 'Zorunlu kanal yok.',
+
+    broadcastNoText: 'Mesaj metnini girin.\n\nOrnek: /broadcast Merhaba!',
+
+    broadcastSending: 'Mesaj gonderiliyor...',
+
+    broadcastResult: (sent: number, failed: number) => `Mesaj gonderildi!\n\nGonderildi: ${sent}\nHata: ${failed}`,Toplam: ${data.totalRequests}Metinli resim gonderin, bot resimdeki metni okuyup kontrol eder.
+
+  },
+
+};Metin: ${data.textRequests}
+
+
+
+export function t(key: string, data?: any): string {Ses: ${data.voiceRequests}*Bana gonderin:**Quyidagilarni yuboring:*
+
+  const message = (messages.tr as any)[key];
+
+Resim: ${data.imageRequests}
+
+  if (!message) {
+
+    console.warn(`Translation missing: ${key}`);*Komutlar:*
+
+    return key;
+
+  }Kayit: ${data.createdAt}`,
+
+
+
+  if (typeof message === 'function') {/start - Botu baslat- Metin - dilbilgisi hatalarini kontrol ederim- Matn - grammatik xatolarni tekshiraman
+
+    return message(data);
+
+  }    errorProcessing: 'Bir hata olustu. Tekrar deneyin.',
+
+
+
+  return message;    errorVoice: 'Sesli mesaj isleme hatasi.',/stats - Istatistikleriniz
+
+}
 
     errorImage: 'Resim isleme hatasi.',
 
