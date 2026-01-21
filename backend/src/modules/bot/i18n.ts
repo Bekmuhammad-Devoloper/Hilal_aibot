@@ -1,121 +1,348 @@
-// Internationalization - Ko'p tilli qo'llab-quvvatlash
+// Faqat Turkcha - Hilal Edu Turk Tili Markazi// Faqat Turkcha - Hilal Edu Turk Tili Markazi// Internationalization - Ko'p tilli qo'llab-quvvatlash
+
+
 
 export const messages = {
-  uz: {
-    welcome: (name: string) => `Merhaba.....
 
-Men Hilal Edu turk tili markazining yordamchi assistant botiman!
+  tr: {
 
-Grammatik xatolarni tekshiraman.
+    welcome: (name: string) => `Merhaba.....export const messages = {export const messages = {
 
-*Quyidagilarni yuboring:*
-- Matn - grammatik xatolarni tekshiraman
-- Ovozli xabar - matnga aylantirib tekshiraman
-- Rasm - rasmdagi matnni oqib tekshiraman
 
-*Til tanlash:* /language
 
-*Qollanma:* /help`,
+Men Hilal Edu turk tili markazining yordamchi assistant botiman!`,  tr: {  uz: {
 
-    help: `*Yordam*
 
-*Bot imkoniyatlari:*
 
-1️⃣ *Matn tekshirish*
-Oddiy matn yuboring, bot grammatik xatolarni topib, to'g'risini ko'rsatadi.
+    help: `*Yardim*    welcome: (name: string) => `Merhaba.....    welcome: (name: string) => `Merhaba.....
 
-2️⃣ *Ovozli xabar*
-Ovozli xabar yuboring, bot uni matnga aylantirib tekshiradi.
+
+
+*Bot ozellikleri:*
+
+
+
+1. *Metin kontrolu*Ben Hilal Edu Turk dili merkezinin yardimci asistaniyim!Men Hilal Edu turk tili markazining yordamchi assistant botiman!
+
+Metin gonderin, bot dilbilgisi hatalarini bulup duzeltir.
+
+
+
+2. *Sesli mesaj*
+
+Sesli mesaj gonderin, bot metne cevirip kontrol eder.Dilbilgisi hatalarini kontrol ediyorum.Grammatik xatolarni tekshiraman.
+
+
+
+3. *Resim*
+
+Metinli resim gonderin, bot resimdeki metni okuyup kontrol eder.
+
+*Bana gonderin:**Quyidagilarni yuboring:*
+
+*Komutlar:*
+
+/start - Botu baslat- Metin - dilbilgisi hatalarini kontrol ederim- Matn - grammatik xatolarni tekshiraman
+
+/stats - Istatistikleriniz
+
+/help - Yardim`,- Sesli mesaj - metne cevirip kontrol ederim- Ovozli xabar - matnga aylantirib tekshiraman
+
+
+
+    stats: (data: any) => `*Istatistikleriniz*- Resim - resimdeki metni okuyup kontrol ederim- Rasm - rasmdagi matnni oqib tekshiraman
+
+
+
+Toplam istekler: ${data.totalRequests}
+
+Metin: ${data.textRequests}
+
+Ses: ${data.voiceRequests}*Yardim:* /help`,*Til tanlash:* /language
+
+Resimler: ${data.imageRequests}
+
+
+
+Kayit tarihi: ${data.createdAt}`,
+
+    help: `*Yardim**Qollanma:* /help`,
+
+    processing: 'Kontrol ediliyor...',
+
+    processingVoice: 'Sesli mesaj isleniyor...',
+
+    processingImage: 'Resim isleniyor...',
+
+    processingVideo: 'Video isleniyor...',*Bot ozellikleri:*    help: `*Yordam*
+
+    
+
+    noErrors: 'Dilbilgisi hatasi bulunamadi! Metin dogru yazilmis.',
+
+    
+
+    result: (data: any) => `*Sonuc*1. *Metin kontrolu**Bot imkoniyatlari:*
+
+
+
+${data.hasErrors ? `*${data.errorsCount} hata bulundu*` : '*Hata bulunamadi*'}Metin gonderin, bot dilbilgisi hatalarini bulup duzeltir.
+
+
+
+${data.hasErrors ? `*Orijinal metin:*\n${data.original}\n\n*Duzeltilmis:*\n${data.corrected}` : `*Metin:*\n${data.original}`}`,1️⃣ *Matn tekshirish*
+
+
+
+    errorProcessing: 'Bir hata olustu. Lutfen tekrar deneyin.',2. *Sesli mesaj*Oddiy matn yuboring, bot grammatik xatolarni topib, to'g'risini ko'rsatadi.
+
+    errorVoice: 'Sesli mesaj islenirken hata olustu.',
+
+    errorImage: 'Resim islenirken hata olustu.',Sesli mesaj gonderin, bot metne cevirip kontrol eder.
+
+    errorVideo: 'Video islenirken hata olustu.',
+
+    errorNoText: 'Resimde metin bulunamadi.',2️⃣ *Ovozli xabar*
+
+    
+
+    subscribeFirst: 'Botu kullanmak icin asagidaki kanallara abone olun:',3. *Resim*Ovozli xabar yuboring, bot uni matnga aylantirib tekshiradi.
+
+    checkSubscription: 'Aboneligi kontrol et',
+
+    subscriptionConfirmed: 'Abonelik onaylandi!',Metinli resim gonderin, bot resimdeki metni okuyup kontrol eder.
+
+    notSubscribed: 'Henuz abone olmamissiniz!',
 
 3️⃣ *Rasm*
-Matnli rasm yuboring, bot rasmdagi matnni o'qib tekshiradi.
-
-*Komandalar:*
-/start - Botni boshlash
-/language - Til tanlash
-/stats - Statistikangiz
-/help - Yordam`,
-
-    selectLanguage: '🌐 Tilni tanlang:',
-    languageChanged: (lang: string) => `✅ Til muvaffaqiyatli o'zgartirildi: ${lang}`,
-    
-    stats: (data: any) => `📊 *Sizning statistikangiz*
-
-📝 Jami so'rovlar: ${data.totalRequests}
-✍️ Matn: ${data.textRequests}
-🎤 Ovoz: ${data.voiceRequests}
-🖼 Rasmlar: ${data.imageRequests}
-
-📅 Ro'yxatdan o'tgan: ${data.createdAt}`,
-
-    processing: '⏳ Tekshirilmoqda...',
-    processingVoice: '🎤 Ovozli xabar qayta ishlanmoqda...',
-    processingImage: '🖼 Rasm qayta ishlanmoqda...',
-    processingVideo: '🎬 Video qayta ishlanmoqda...',
-    
-    noErrors: '✅ Grammatik xatolar topilmadi! Matn to\'g\'ri yozilgan.',
-    
-    result: (data: any) => `📝 *Natija*
-
-${data.hasErrors ? `❌ *${data.errorsCount} ta xato topildi*` : '✅ *Xatolar topilmadi*'}
-
-${data.hasErrors ? `*Asl matn:*\n${data.original}\n\n*To'g'rilangan:*\n${data.corrected}` : `*Matn:*\n${data.original}`}`,
-
-    errorProcessing: '❌ Xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.',
-    errorVoice: '❌ Ovozli xabarni qayta ishlashda xatolik.',
-    errorImage: '❌ Rasmni qayta ishlashda xatolik.',
-    errorVideo: '❌ Videoni qayta ishlashda xatolik.',
-    errorNoText: '❌ Rasmdan matn topilmadi.',
-    
-    subscribeFirst: '⚠️ Botdan foydalanish uchun quyidagi kanallarga obuna bo\'ling:',
-    checkSubscription: '✅ Obunani tekshirish',
-    subscriptionConfirmed: '✅ Obuna tasdiqlandi!',
-    notSubscribed: '❌ Siz hali obuna bo\'lmagansiz!',
 
     // Admin
-    adminOnly: '❌ Bu komanda faqat adminlar uchun.',
-    adminPanel: `🔐 *Admin Panel*
 
-Siz admin sifatida ro'yxatdan o'tgansiz!
+    adminOnly: 'Bu komut sadece yoneticiler icindir.',*Komutlar:*Matnli rasm yuboring, bot rasmdagi matnni o'qib tekshiradi.
 
-*Mavjud komandalar:*
+    adminPanel: `*Admin Paneli*
+
+/start - Botu baslat
+
+Yonetici olarak giris yaptiniz!
+
+/stats - Istatistikleriniz*Komandalar:*
+
+*Mevcut komutlar:*
+
+- /admin - Admin paneli/help - Yardim`,/start - Botni boshlash
+
+- /broadcast [mesaj] - Mesaj gonder
+
+- /adminstats - Bot istatistikleri/language - Til tanlash
+
+- /channels - Kanal listesi`,
+
+    stats: (data: any) => `*Istatistikleriniz*/stats - Statistikangiz
+
+    adminStats: (data: any) => `*Bot Istatistikleri*
+
+/help - Yordam`,
+
+*Kullanicilar:*
+
+- Toplam: ${data.totalUsers}Toplam istekler: ${data.totalRequests}
+
+- Bugun: ${data.todayUsers}
+
+- Aktif (7 gun): ${data.activeUsers}Metin: ${data.textRequests}    selectLanguage: '🌐 Tilni tanlang:',
+
+
+
+*Istekler:*Ses: ${data.voiceRequests}    languageChanged: (lang: string) => `✅ Til muvaffaqiyatli o'zgartirildi: ${lang}`,
+
+- Toplam: ${data.totalRequests}
+
+- Metin: ${data.textRequests}Resimler: ${data.imageRequests}    
+
+- Ses: ${data.voiceRequests}
+
+- Resim: ${data.imageRequests}`,    stats: (data: any) => `📊 *Sizning statistikangiz*
+
+
+
+    noChannels: 'Zorunlu kanal yok.',Kayit tarihi: ${data.createdAt}`,
+
+    broadcastNoText: 'Mesaj metnini girin.\n\nOrnek: /broadcast Merhaba!',
+
+    broadcastSending: 'Mesaj gonderiliyor...',📝 Jami so'rovlar: ${data.totalRequests}
+
+    broadcastResult: (sent: number, failed: number) => `Mesaj gonderildi!\n\nGonderildi: ${sent}\nHata: ${failed}`,
+
+  },    processing: 'Kontrol ediliyor...',✍️ Matn: ${data.textRequests}
+
+};
+
+    processingVoice: 'Sesli mesaj isleniyor...',🎤 Ovoz: ${data.voiceRequests}
+
+export type Language = 'tr';
+
+export const defaultLanguage: Language = 'tr';    processingImage: 'Resim isleniyor...',🖼 Rasmlar: ${data.imageRequests}
+
+
+
+export function t(lang: string, key: string, data?: any): string {    processingVideo: 'Video isleniyor...',
+
+  const message = (messages.tr as any)[key];
+
+      📅 Ro'yxatdan o'tgan: ${data.createdAt}`,
+
+  if (!message) {
+
+    console.warn(`Translation missing: ${key}`);    noErrors: 'Dilbilgisi hatasi bulunamadi! Metin dogru yazilmis.',
+
+    return key;
+
+  }        processing: '⏳ Tekshirilmoqda...',
+
+  
+
+  if (typeof message === 'function') {    result: (data: any) => `*Sonuc*    processingVoice: '🎤 Ovozli xabar qayta ishlanmoqda...',
+
+    return message(data);
+
+  }    processingImage: '🖼 Rasm qayta ishlanmoqda...',
+
+  
+
+  return message;${data.hasErrors ? `*${data.errorsCount} hata bulundu*` : '*Hata bulunamadi*'}    processingVideo: '🎬 Video qayta ishlanmoqda...',
+
+}
+
+    
+
+${data.hasErrors ? `*Orijinal metin:*\n${data.original}\n\n*Duzeltilmis:*\n${data.corrected}` : `*Metin:*\n${data.original}`}`,    noErrors: '✅ Grammatik xatolar topilmadi! Matn to\'g\'ri yozilgan.',
+
+    
+
+    errorProcessing: 'Bir hata olustu. Lutfen tekrar deneyin.',    result: (data: any) => `📝 *Natija*
+
+    errorVoice: 'Sesli mesaj islenirken hata olustu.',
+
+    errorImage: 'Resim islenirken hata olustu.',${data.hasErrors ? `❌ *${data.errorsCount} ta xato topildi*` : '✅ *Xatolar topilmadi*'}
+
+    errorVideo: 'Video islenirken hata olustu.',
+
+    errorNoText: 'Resimde metin bulunamadi.',${data.hasErrors ? `*Asl matn:*\n${data.original}\n\n*To'g'rilangan:*\n${data.corrected}` : `*Matn:*\n${data.original}`}`,
+
+    
+
+    subscribeFirst: 'Botu kullanmak icin asagidaki kanallara abone olun:',    errorProcessing: '❌ Xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.',
+
+    checkSubscription: 'Aboneligi kontrol et',    errorVoice: '❌ Ovozli xabarni qayta ishlashda xatolik.',
+
+    subscriptionConfirmed: 'Abonelik onaylandi!',    errorImage: '❌ Rasmni qayta ishlashda xatolik.',
+
+    notSubscribed: 'Henuz abone olmamissiniz!',    errorVideo: '❌ Videoni qayta ishlashda xatolik.',
+
+    errorNoText: '❌ Rasmdan matn topilmadi.',
+
+    // Admin    
+
+    adminOnly: 'Bu komut sadece yoneticiler icindir.',    subscribeFirst: '⚠️ Botdan foydalanish uchun quyidagi kanallarga obuna bo\'ling:',
+
+    adminPanel: `*Admin Paneli*    checkSubscription: '✅ Obunani tekshirish',
+
+    subscriptionConfirmed: '✅ Obuna tasdiqlandi!',
+
+Yonetici olarak giris yaptiniz!    notSubscribed: '❌ Siz hali obuna bo\'lmagansiz!',
+
+
+
+*Mevcut komutlar:*    // Admin
+
+- /admin - Admin paneli    adminOnly: '❌ Bu komanda faqat adminlar uchun.',
+
+- /broadcast [mesaj] - Mesaj gonder    adminPanel: `🔐 *Admin Panel*
+
+- /adminstats - Bot istatistikleri
+
+- /channels - Kanal listesi`,Siz admin sifatida ro'yxatdan o'tgansiz!
+
+
+
+    adminStats: (data: any) => `*Bot Istatistikleri**Mavjud komandalar:*
+
 • /admin - Admin panel
-• /broadcast [xabar] - Xabar yuborish
-• /adminstats - Bot statistikasi
-• /channels - Kanallar ro'yxati`,
+
+*Kullanicilar:*• /broadcast [xabar] - Xabar yuborish
+
+- Toplam: ${data.totalUsers}• /adminstats - Bot statistikasi
+
+- Bugun: ${data.todayUsers}• /channels - Kanallar ro'yxati`,
+
+- Aktif (7 gun): ${data.activeUsers}
 
     adminStats: (data: any) => `📊 *Bot Statistikasi*
 
-👥 *Foydalanuvchilar:*
-• Jami: ${data.totalUsers}
-• Bugun: ${data.todayUsers}
-• Faol (7 kun): ${data.activeUsers}
+*Istekler:*
 
-📝 *So'rovlar:*
-• Jami: ${data.totalRequests}
-• Matn: ${data.textRequests}
-• Ovoz: ${data.voiceRequests}
-• Rasm: ${data.imageRequests}`,
+- Toplam: ${data.totalRequests}👥 *Foydalanuvchilar:*
+
+- Metin: ${data.textRequests}• Jami: ${data.totalUsers}
+
+- Ses: ${data.voiceRequests}• Bugun: ${data.todayUsers}
+
+- Resim: ${data.imageRequests}`,• Faol (7 kun): ${data.activeUsers}
+
+
+
+    noChannels: 'Zorunlu kanal yok.',📝 *So'rovlar:*
+
+    broadcastNoText: 'Mesaj metnini girin.\n\nOrnek: /broadcast Merhaba!',• Jami: ${data.totalRequests}
+
+    broadcastSending: 'Mesaj gonderiliyor...',• Matn: ${data.textRequests}
+
+    broadcastResult: (sent: number, failed: number) => `Mesaj gonderildi!\n\nGonderildi: ${sent}\nHata: ${failed}`,• Ovoz: ${data.voiceRequests}
+
+  },• Rasm: ${data.imageRequests}`,
+
+};
 
     noChannels: '📢 Majburiy kanallar yo\'q.',
-    broadcastNoText: '❌ Xabar matnini kiriting.\n\nMisol: /broadcast Salom!',
-    broadcastSending: '📤 Xabar yuborilmoqda...',
-    broadcastResult: (sent: number, failed: number) => `✅ Xabar yuborildi!\n\n📊 Yuborildi: ${sent}\n❌ Xatolik: ${failed}`,
+
+// Varsayilan dil Turkce    broadcastNoText: '❌ Xabar matnini kiriting.\n\nMisol: /broadcast Salom!',
+
+export type Language = 'tr';    broadcastSending: '📤 Xabar yuborilmoqda...',
+
+export const defaultLanguage: Language = 'tr';    broadcastResult: (sent: number, failed: number) => `✅ Xabar yuborildi!\n\n📊 Yuborildi: ${sent}\n❌ Xatolik: ${failed}`,
+
   },
 
-  ru: {
-    welcome: (name: string) => `Merhaba.....
+export function t(lang: string, key: string, data?: any): string {
 
-Men Hilal Edu turk tili markazining yordamchi assistant botiman!
+  // Her zaman Turkce kullan  ru: {
 
-Grammatik xatolarni tekshiraman.
+  const message = (messages.tr as any)[key];    welcome: (name: string) => `Merhaba.....
 
-*Quyidagilarni yuboring:*
-- Matn - grammatik xatolarni tekshiraman
-- Ovozli xabar - matnga aylantirib tekshiraman
-- Rasm - rasmdagi matnni oqib tekshiraman
+  
 
-*Til tanlash:* /language
+  if (!message) {Men Hilal Edu turk tili markazining yordamchi assistant botiman!
+
+    console.warn(`Translation missing: ${key}`);
+
+    return key;Grammatik xatolarni tekshiraman.
+
+  }
+
+  *Quyidagilarni yuboring:*
+
+  if (typeof message === 'function') {- Matn - grammatik xatolarni tekshiraman
+
+    return message(data);- Ovozli xabar - matnga aylantirib tekshiraman
+
+  }- Rasm - rasmdagi matnni oqib tekshiraman
+
+  
+
+  return message;*Til tanlash:* /language
+
+}
 
 *Qollanma:* /help`,
 

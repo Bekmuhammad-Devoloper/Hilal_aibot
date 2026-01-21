@@ -12,7 +12,7 @@ import { StatsService } from '../stats/stats.service';
 import { AuthService } from '../auth/auth.service';
 import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
-import { t, langNames } from './i18n';
+import { t } from './i18n';
 
 @Update()
 export class BotUpdate {
@@ -117,29 +117,6 @@ export class BotUpdate {
     await ctx.replyWithMarkdown(t(lang, 'help'));
   }
 
-  @Command('language')
-  async onLanguage(@Ctx() ctx: Context) {
-    const user = ctx.from;
-    if (!user) return;
-
-    const lang = await this.getUserLang(String(user.id));
-    
-    const keyboard = {
-      inline_keyboard: [
-        [
-          { text: '🇺🇿 O\'zbek', callback_data: 'lang_uz' },
-          { text: '🇷🇺 Русский', callback_data: 'lang_ru' },
-        ],
-        [
-          { text: '🇬🇧 English', callback_data: 'lang_en' },
-          { text: '🇹🇷 Türkçe', callback_data: 'lang_tr' },
-        ],
-      ],
-    };
-
-    await ctx.reply(t(lang, 'selectLanguage'), { reply_markup: keyboard });
-  }
-
   @Command('stats')
   async onStats(@Ctx() ctx: Context) {
     const user = ctx.from;
@@ -153,7 +130,7 @@ export class BotUpdate {
       textRequests: botUser.textRequests,
       voiceRequests: botUser.voiceRequests,
       imageRequests: botUser.imageRequests,
-      createdAt: botUser.createdAt.toLocaleDateString(lang === 'ru' ? 'ru-RU' : lang === 'en' ? 'en-US' : 'uz-UZ'),
+      createdAt: botUser.createdAt.toLocaleDateString('tr-TR'),
     };
 
     await ctx.replyWithMarkdown(t(lang, 'stats', statsData));
@@ -169,14 +146,6 @@ export class BotUpdate {
 
     // Ensure user exists in database
     await this.botService.getOrCreateUser(user);
-
-    if (data.startsWith('lang_')) {
-      const language = data.replace('lang_', '');
-      await this.botService.setUserLanguage(String(user.id), language);
-
-      await ctx.answerCbQuery(t(language, 'languageChanged', langNames[language]));
-      await ctx.editMessageText(t(language, 'languageChanged', langNames[language]));
-    }
 
     if (data === 'check_subscription') {
       const lang = await this.getUserLang(String(user.id));
