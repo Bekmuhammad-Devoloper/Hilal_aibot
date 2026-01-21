@@ -30,10 +30,6 @@ export class BotUpdate {
     @InjectBot() private bot: Telegraf<Context>,
   ) {}
 
-  private async getUserLang(userId: string): Promise<string> {
-    return await this.botService.getUserLanguage(userId);
-  }
-
   private isAdmin(userId: number): boolean {
     // To'g'ridan-to'g'ri process.env dan o'qiymiz
     const adminIdsEnv: string = process.env.ADMIN_IDS || this.configService.get('ADMIN_IDS') || '';
@@ -47,7 +43,7 @@ export class BotUpdate {
     const user = ctx.from;
     if (!user) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
 
     // Check if user is admin
     if (!this.isAdmin(user.id)) {
@@ -99,13 +95,13 @@ export class BotUpdate {
     if (!user) return;
 
     await this.botService.getOrCreateUser(user);
-    const lang = await this.getUserLang(String(user.id));
+    
 
     // Check mandatory channel subscription
-    const isSubscribed = await this.checkMandatoryChannel(ctx, lang);
+    const isSubscribed = await this.checkMandatoryChannel(ctx);
     if (!isSubscribed) return;
 
-    await ctx.replyWithMarkdown(t(lang, 'welcome', user.first_name));
+    await ctx.replyWithMarkdown(t('welcome', user.first_name));
   }
 
   @Help()
@@ -113,8 +109,8 @@ export class BotUpdate {
     const user = ctx.from;
     if (!user) return;
 
-    const lang = await this.getUserLang(String(user.id));
-    await ctx.replyWithMarkdown(t(lang, 'help'));
+    
+    await ctx.replyWithMarkdown(t('help'));
   }
 
   @Command('stats')
@@ -122,7 +118,7 @@ export class BotUpdate {
     const user = ctx.from;
     if (!user) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
     const botUser = await this.botService.getOrCreateUser(user);
 
     const statsData = {
@@ -133,7 +129,7 @@ export class BotUpdate {
       createdAt: botUser.createdAt.toLocaleDateString('tr-TR'),
     };
 
-    await ctx.replyWithMarkdown(t(lang, 'stats', statsData));
+    await ctx.replyWithMarkdown(t('stats', statsData));
   }
 
   @On('callback_query')
@@ -148,13 +144,13 @@ export class BotUpdate {
     await this.botService.getOrCreateUser(user);
 
     if (data === 'check_subscription') {
-      const lang = await this.getUserLang(String(user.id));
-      const isSubscribed = await this.checkMandatoryChannel(ctx, lang, true);
+      
+      const isSubscribed = await this.checkMandatoryChannel(ctx, true);
       if (isSubscribed) {
-        await ctx.answerCbQuery(t(lang, 'subscriptionConfirmed'));
+        await ctx.answerCbQuery(t('subscriptionConfirmed'));
         await this.onStart(ctx);
       } else {
-        await ctx.answerCbQuery(t(lang, 'notSubscribed'), { show_alert: true });
+        await ctx.answerCbQuery(t('notSubscribed'), { show_alert: true });
       }
     }
 
@@ -206,13 +202,13 @@ export class BotUpdate {
 
     if (!user || !text || text.startsWith('/')) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
 
     // Check mandatory channel subscription
-    const isSubscribed = await this.checkMandatoryChannel(ctx, lang);
+    const isSubscribed = await this.checkMandatoryChannel(ctx);
     if (!isSubscribed) return;
 
-    const processingMsg = await ctx.reply(t(lang, 'processing'));
+    const processingMsg = await ctx.reply(t('processing'));
 
     try {
       const startTime = Date.now();
@@ -279,13 +275,13 @@ export class BotUpdate {
         corrected: result.correctedText,
       };
 
-      await ctx.replyWithMarkdown(t(lang, 'result', resultData));
+      await ctx.replyWithMarkdown(t('result', resultData));
     } catch (error) {
       console.error('Text processing error:', error);
       try {
         await ctx.deleteMessage(processingMsg.message_id);
       } catch {}
-      await ctx.reply(t(lang, 'errorProcessing'));
+      await ctx.reply(t('errorProcessing'));
     }
   }
 
@@ -297,13 +293,13 @@ export class BotUpdate {
 
     if (!user || !voice) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
 
     // Check mandatory channel subscription
-    const isSubscribed = await this.checkMandatoryChannel(ctx, lang);
+    const isSubscribed = await this.checkMandatoryChannel(ctx);
     if (!isSubscribed) return;
 
-    const processingMsg = await ctx.reply(t(lang, 'processingVoice'));
+    const processingMsg = await ctx.reply(t('processingVoice'));
 
     try {
       const startTime = Date.now();
@@ -339,7 +335,7 @@ export class BotUpdate {
 
       if (!text) {
         await ctx.deleteMessage(processingMsg.message_id);
-        await ctx.reply(t(lang, 'errorVoice'));
+        await ctx.reply(t('errorVoice'));
         return;
       }
 
@@ -388,13 +384,13 @@ export class BotUpdate {
         corrected: result.correctedText,
       };
 
-      await ctx.replyWithMarkdown(t(lang, 'result', resultData));
+      await ctx.replyWithMarkdown(t('result', resultData));
     } catch (error) {
       console.error('Voice processing error:', error);
       try {
         await ctx.deleteMessage(processingMsg.message_id);
       } catch {}
-      await ctx.reply(t(lang, 'errorVoice'));
+      await ctx.reply(t('errorVoice'));
     }
   }
 
@@ -406,13 +402,13 @@ export class BotUpdate {
 
     if (!user || !photos || photos.length === 0) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
 
     // Check mandatory channel subscription
-    const isSubscribed = await this.checkMandatoryChannel(ctx, lang);
+    const isSubscribed = await this.checkMandatoryChannel(ctx);
     if (!isSubscribed) return;
 
-    const processingMsg = await ctx.reply(t(lang, 'processingImage'));
+    const processingMsg = await ctx.reply(t('processingImage'));
 
     try {
       const startTime = Date.now();
@@ -469,7 +465,7 @@ export class BotUpdate {
 
       if (!text || text.trim().length === 0) {
         await ctx.deleteMessage(processingMsg.message_id);
-        await ctx.reply(t(lang, 'errorNoText'));
+        await ctx.reply(t('errorNoText'));
         return;
       }
 
@@ -495,13 +491,13 @@ export class BotUpdate {
         corrected: result?.correctedText || text,
       };
 
-      await ctx.replyWithMarkdown(t(lang, 'result', resultData));
+      await ctx.replyWithMarkdown(t('result', resultData));
     } catch (error) {
       console.error('Image processing error:', error);
       try {
         await ctx.deleteMessage(processingMsg.message_id);
       } catch {}
-      await ctx.reply(t(lang, 'errorImage'));
+      await ctx.reply(t('errorImage'));
     }
   }
 
@@ -513,13 +509,13 @@ export class BotUpdate {
 
     if (!user || !video) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
 
     // Check mandatory channel subscription
-    const isSubscribed = await this.checkMandatoryChannel(ctx, lang);
+    const isSubscribed = await this.checkMandatoryChannel(ctx);
     if (!isSubscribed) return;
 
-    const processingMsg = await ctx.reply(t(lang, 'processingVideo'));
+    const processingMsg = await ctx.reply(t('processingVideo'));
 
     try {
       const startTime = Date.now();
@@ -528,21 +524,21 @@ export class BotUpdate {
       const fileLink = await ctx.telegram.getFileLink(video.file_id);
       
       // SpeechToTextService orqali video dan matnga
-      const text = await this.speechToTextService.transcribeVideo(fileLink.href, lang);
+      const text = await this.speechToTextService.transcribeVideo(fileLink.href, 'tr');
 
       if (!text) {
         await ctx.deleteMessage(processingMsg.message_id);
-        await ctx.reply(t(lang, 'errorVideo'));
+        await ctx.reply(t('errorVideo'));
         return;
       }
 
       // Gemini orqali grammatik tekshirish, fallback GrammarService
       let result;
       try {
-        result = await this.geminiService.correctGrammar(text, lang);
+        result = await this.geminiService.correctGrammar(text, 'tr');
       } catch (geminiError) {
         console.log('Gemini failed for video, using GrammarService fallback');
-        result = await this.grammarService.correctGrammar(text, lang);
+        result = await this.grammarService.correctGrammar(text, 'tr');
       }
 
       await this.botService.incrementRequestCount(String(user.id), 'voice');
@@ -567,13 +563,13 @@ export class BotUpdate {
         corrected: result.correctedText,
       };
 
-      await ctx.replyWithMarkdown(t(lang, 'result', resultData));
+      await ctx.replyWithMarkdown(t('result', resultData));
     } catch (error) {
       console.error('Video processing error:', error);
       try {
         await ctx.deleteMessage(processingMsg.message_id);
       } catch {}
-      await ctx.reply(t(lang, 'errorVideo'));
+      await ctx.reply(t('errorVideo'));
     }
   }
 
@@ -585,13 +581,13 @@ export class BotUpdate {
 
     if (!user || !videoNote) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
 
     // Check mandatory channel subscription
-    const isSubscribed = await this.checkMandatoryChannel(ctx, lang);
+    const isSubscribed = await this.checkMandatoryChannel(ctx);
     if (!isSubscribed) return;
 
-    const processingMsg = await ctx.reply(t(lang, 'processingVideo'));
+    const processingMsg = await ctx.reply(t('processingVideo'));
 
     try {
       const startTime = Date.now();
@@ -600,21 +596,21 @@ export class BotUpdate {
       const fileLink = await ctx.telegram.getFileLink(videoNote.file_id);
       
       // SpeechToTextService orqali video_note dan matnga
-      const text = await this.speechToTextService.transcribeVideo(fileLink.href, lang);
+      const text = await this.speechToTextService.transcribeVideo(fileLink.href, 'tr');
 
       if (!text) {
         await ctx.deleteMessage(processingMsg.message_id);
-        await ctx.reply(t(lang, 'errorVideo'));
+        await ctx.reply(t('errorVideo'));
         return;
       }
 
       // Gemini orqali grammatik tekshirish, fallback GrammarService
       let result;
       try {
-        result = await this.geminiService.correctGrammar(text, lang);
+        result = await this.geminiService.correctGrammar(text, 'tr');
       } catch (geminiError) {
         console.log('Gemini failed for video_note, using GrammarService fallback');
-        result = await this.grammarService.correctGrammar(text, lang);
+        result = await this.grammarService.correctGrammar(text, 'tr');
       }
 
       await this.botService.incrementRequestCount(String(user.id), 'voice');
@@ -639,13 +635,13 @@ export class BotUpdate {
         corrected: result.correctedText,
       };
 
-      await ctx.replyWithMarkdown(t(lang, 'result', resultData));
+      await ctx.replyWithMarkdown(t('result', resultData));
     } catch (error) {
       console.error('Video note processing error:', error);
       try {
         await ctx.deleteMessage(processingMsg.message_id);
       } catch {}
-      await ctx.reply(t(lang, 'errorVideo'));
+      await ctx.reply(t('errorVideo'));
     }
   }
 
@@ -657,13 +653,13 @@ export class BotUpdate {
 
     if (!user || !audio) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
 
     // Check mandatory channel subscription
-    const isSubscribed = await this.checkMandatoryChannel(ctx, lang);
+    const isSubscribed = await this.checkMandatoryChannel(ctx);
     if (!isSubscribed) return;
 
-    const processingMsg = await ctx.reply(t(lang, 'processingVoice'));
+    const processingMsg = await ctx.reply(t('processingVoice'));
 
     try {
       const startTime = Date.now();
@@ -672,21 +668,21 @@ export class BotUpdate {
       const fileLink = await ctx.telegram.getFileLink(audio.file_id);
       
       // SpeechToTextService orqali speech-to-text
-      const text = await this.speechToTextService.transcribe(fileLink.href, lang);
+      const text = await this.speechToTextService.transcribe(fileLink.href, 'tr');
 
       if (!text) {
         await ctx.deleteMessage(processingMsg.message_id);
-        await ctx.reply(t(lang, 'errorVoice'));
+        await ctx.reply(t('errorVoice'));
         return;
       }
 
       // Gemini orqali grammatik tekshirish, fallback GrammarService
       let result;
       try {
-        result = await this.geminiService.correctGrammar(text, lang);
+        result = await this.geminiService.correctGrammar(text, 'tr');
       } catch (geminiError) {
         console.log('Gemini failed for audio, using GrammarService fallback');
-        result = await this.grammarService.correctGrammar(text, lang);
+        result = await this.grammarService.correctGrammar(text, 'tr');
       }
 
       await this.botService.incrementRequestCount(String(user.id), 'voice');
@@ -711,17 +707,17 @@ export class BotUpdate {
         corrected: result.correctedText,
       };
 
-      await ctx.replyWithMarkdown(t(lang, 'result', resultData));
+      await ctx.replyWithMarkdown(t('result', resultData));
     } catch (error) {
       console.error('Audio processing error:', error);
       try {
         await ctx.deleteMessage(processingMsg.message_id);
       } catch {}
-      await ctx.reply(t(lang, 'errorVoice'));
+      await ctx.reply(t('errorVoice'));
     }
   }
 
-  private async checkMandatoryChannel(ctx: Context, lang: string, skipMessage: boolean = false): Promise<boolean> {
+  private async checkMandatoryChannel(ctx: Context, skipMessage: boolean = false): Promise<boolean> {
     const user = ctx.from;
     if (!user) return false;
 
@@ -737,11 +733,11 @@ export class BotUpdate {
               ...mandatoryChannels.map(ch => ([
                 { text: `📢 ${ch.title}`, url: `https://t.me/${ch.channelUsername}` }
               ])),
-              [{ text: t(lang, 'checkSubscription'), callback_data: 'check_subscription' }],
+              [{ text: t('checkSubscription'), callback_data: 'check_subscription' }],
             ],
           };
 
-          await ctx.reply(t(lang, 'subscribeFirst'), { reply_markup: keyboard });
+          await ctx.reply(t('subscribeFirst'), { reply_markup: keyboard });
         }
         return false;
       }
@@ -755,15 +751,15 @@ export class BotUpdate {
     const user = ctx.from;
     if (!user) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
 
     if (!this.isAdmin(user.id)) {
-      await ctx.reply(t(lang, 'adminOnly'));
+      await ctx.reply(t('adminOnly'));
       return;
     }
 
     const stats = await this.statsService.getDashboardStats();
-    await ctx.replyWithMarkdown(t(lang, 'adminStats', stats));
+    await ctx.replyWithMarkdown(t('adminStats', stats));
   }
 
   @Command('channels')
@@ -771,17 +767,17 @@ export class BotUpdate {
     const user = ctx.from;
     if (!user) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
 
     if (!this.isAdmin(user.id)) {
-      await ctx.reply(t(lang, 'adminOnly'));
+      await ctx.reply(t('adminOnly'));
       return;
     }
 
     const channels = await this.channelsService.getMandatoryChannels();
     
     if (channels.length === 0) {
-      await ctx.reply(t(lang, 'noChannels'));
+      await ctx.reply(t('noChannels'));
       return;
     }
 
@@ -799,24 +795,24 @@ export class BotUpdate {
     const message = ctx.message as any;
     if (!user) return;
 
-    const lang = await this.getUserLang(String(user.id));
+    
 
     if (!this.isAdmin(user.id)) {
-      await ctx.reply(t(lang, 'adminOnly'));
+      await ctx.reply(t('adminOnly'));
       return;
     }
 
     const text = message?.text?.replace('/broadcast', '').trim();
     if (!text) {
-      await ctx.reply(t(lang, 'broadcastNoText'));
+      await ctx.reply(t('broadcastNoText'));
       return;
     }
 
-    await ctx.reply(t(lang, 'broadcastSending'));
+    await ctx.reply(t('broadcastSending'));
     
     const result = await this.botService.broadcastMessage(text);
     
-    await ctx.reply(t(lang, 'broadcastResult', result.sent, result.failed));
+    await ctx.reply(t('broadcastResult', result.sent, result.failed));
   }
 
   @Command('logincode')
@@ -824,23 +820,15 @@ export class BotUpdate {
     const user = ctx.from;
     if (!user) return;
 
-    const lang = await this.getUserLang(String(user.id));
-
     if (!this.isAdmin(user.id)) {
-      await ctx.reply(t(lang, 'adminOnly'));
+      await ctx.reply(t('adminOnly'));
       return;
     }
 
     // Login kodi yaratish
     const code = this.authService.generateTelegramLoginCode(String(user.id));
 
-    const message = lang === 'uz' 
-      ? `🔐 *Admin Panel Login Kodi*\n\n📱 Kod: \`${code}\`\n\n⏰ Kod 5 daqiqa amal qiladi.\n\n🌐 Admin panelga kiring: http://localhost:3001\n\nLogin sahifasida "Telegram orqali kirish" tugmasini bosing va bu kodni kiriting.`
-      : lang === 'ru'
-      ? `🔐 *Код для входа в панель*\n\n📱 Код: \`${code}\`\n\n⏰ Код действует 5 минут.\n\n🌐 Перейдите: http://localhost:3001\n\nНажмите "Войти через Telegram" и введите код.`
-      : lang === 'tr'
-      ? `🔐 *Admin Panel Giriş Kodu*\n\n📱 Kod: \`${code}\`\n\n⏰ Kod 5 dakika geçerli.\n\n🌐 Panele gidin: http://localhost:3001\n\n"Telegram ile giriş" butonuna tıklayın ve kodu girin.`
-      : `🔐 *Admin Panel Login Code*\n\n📱 Code: \`${code}\`\n\n⏰ Code valid for 5 minutes.\n\n🌐 Go to: http://localhost:3001\n\nClick "Login with Telegram" and enter this code.`;
+    const message = `🔐 *Admin Panel Giriş Kodu*\n\n📱 Kod: \`${code}\`\n\n⏰ Kod 5 dakika geçerli.\n\n🌐 Panele gidin: http://localhost:3001\n\n"Telegram ile giriş" butonuna tıklayın ve kodu girin.`;
 
     await ctx.replyWithMarkdown(message);
   }
