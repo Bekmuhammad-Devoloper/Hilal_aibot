@@ -80,17 +80,17 @@ const technologies = [
 const socialLinks = [
   {
     name: 'Telegram',
-    url: 'https://t.me/Khamidov_online',
+    url: 'https://t.me/Shokirjonov_online',
     icon: FiSend,
     color: 'bg-blue-500 hover:bg-blue-600',
-    username: '@Khamidov_online',
+    username: '@Shokirjonov_online',
   },
   {
     name: 'Instagram',
-    url: 'https://www.instagram.com/khamidov__online/',
+    url: 'https://www.instagram.com/shokirjonov__online/',
     icon: FiInstagram,
     color: 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-600 hover:via-pink-600 hover:to-orange-600',
-    username: '@khamidov__online',
+    username: '@shokirjonov__online',
   },
   {
     name: 'GitHub',
@@ -136,7 +136,7 @@ export default function DeveloperPage() {
 
           {/* Info */}
           <div className="text-center md:text-left flex-1">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Bekmuhammad Khamidov</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Bekmuhammad Shokirjonov</h1>
             <p className="text-xl text-white/80 mb-4">Full Stack Developer & AI Enthusiast</p>
             <div className="flex flex-wrap gap-2 justify-center md:justify-start">
               <span className="px-3 py-1 bg-white/20 rounded-full text-sm backdrop-blur-xl">🚀 6+ oy tajriba</span>

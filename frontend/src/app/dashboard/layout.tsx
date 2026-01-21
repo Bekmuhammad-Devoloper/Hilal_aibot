@@ -72,10 +72,10 @@ export default function DashboardLayout({
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b">
-            <div className="flex items-center gap-3">
+            <Link href="/dashboard/developer" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <img src="/Hilal Edu - logo-2.png" alt="Hilal AI" className="w-8 h-8 object-contain" />
               <span className="font-bold text-gray-800">Hilal AI Bot</span>
-            </div>
+            </Link>
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden p-1 rounded-lg hover:bg-gray-100"

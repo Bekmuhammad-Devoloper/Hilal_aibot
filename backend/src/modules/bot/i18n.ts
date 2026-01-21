@@ -2,9 +2,11 @@
 
 export const messages = {
   uz: {
-    welcome: (name: string) => `🎓 *Assalomu alaykum, ${name}!*
+    welcome: (name: string) => `Merhaba.....
 
-📝 Men grammatik xatolarni to'g'irlovchi botman.
+�🇷 Men Hilal Edu turk tili markazining yordamchi assistant botiman!
+
+📝 Grammatik xatolarni tekshiraman.
 
 *Quyidagilarni yuboring:*
 • ✍️ Matn - grammatik xatolarni tekshiraman
