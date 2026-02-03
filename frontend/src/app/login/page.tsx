@@ -40,12 +40,12 @@ export default function LoginPage() {
       localStorage.setItem('token', access_token);
       setAuth(access_token, user);
 
-      toast.success('Muvaffaqiyatli kirdingiz!');
+      toast.success('Başarıyla giriş yapıldı!');
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
       console.error('Error response:', error.response);
-      toast.error(error.response?.data?.message || error.message || 'Login xatoligi');
+      toast.error(error.response?.data?.message || error.message || 'Giriş hatası');
     } finally {
       setLoading(false);
     }
@@ -68,11 +68,11 @@ export default function LoginPage() {
       localStorage.setItem('token', access_token);
       setAuth(access_token, user);
 
-      toast.success('Telegram orqali kirdingiz!');
+      toast.success('Telegram ile giriş yapıldı!');
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Telegram login error:', error);
-      toast.error(error.response?.data?.message || 'Kod xato yoki muddati tugagan');
+      toast.error(error.response?.data?.message || 'Kod yanlış veya süresi dolmuş');
     } finally {
       setTelegramLoading(false);
     }
@@ -101,13 +101,13 @@ export default function LoginPage() {
           {!showTelegramLogin ? (
             <>
               <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
-                Kirish
+                Giriş
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Foydalanuvchi nomi
+                    Kullanıcı adı
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -126,7 +126,7 @@ export default function LoginPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Parol
+                    Şifre
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -153,7 +153,7 @@ export default function LoginPage() {
                   ) : (
                     <>
                       <FiLogIn className="h-5 w-5" />
-                      Kirish
+                      Giriş
                     </>
                   )}
                 </button>
@@ -164,7 +164,7 @@ export default function LoginPage() {
                   <div className="w-full border-t border-gray-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">yoki</span>
+                  <span className="px-4 bg-white text-gray-500">veya</span>
                 </div>
               </div>
 
@@ -173,26 +173,26 @@ export default function LoginPage() {
                 className="w-full flex items-center justify-center gap-2 bg-[#0088cc] text-white py-3 px-4 rounded-xl font-semibold hover:bg-[#0077b5] transition-all"
               >
                 <FiSend className="h-5 w-5" />
-                Telegram orqali kirish
+                Telegram ile giriş
               </button>
 
               <p className="text-center text-gray-500 text-sm mt-4">
-                Botda <code className="bg-gray-100 px-2 py-1 rounded">/logincode</code> yuboring
+                Botta <code className="bg-gray-100 px-2 py-1 rounded">/logincode</code> gönderin
               </p>
             </>
           ) : (
             <>
               <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">
-                Telegram Login
+                Telegram Giriş
               </h2>
               <p className="text-gray-500 text-center mb-6 text-sm">
-                Botga <code className="bg-gray-100 px-2 py-1 rounded">/logincode</code> yuboring va olingan kodni kiriting
+                Botta <code className="bg-gray-100 px-2 py-1 rounded">/logincode</code> gönderin ve aldığınız kodu girin
               </p>
 
               <form onSubmit={handleTelegramLogin} className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    6 raqamli kod
+                    6 haneli kod
                   </label>
                   <input
                     type="text"
@@ -215,7 +215,7 @@ export default function LoginPage() {
                   ) : (
                     <>
                       <FiLogIn className="h-5 w-5" />
-                      Kirish
+                      Giriş
                     </>
                   )}
                 </button>
@@ -225,7 +225,7 @@ export default function LoginPage() {
                   onClick={() => setShowTelegramLogin(false)}
                   className="w-full text-gray-500 py-2 hover:text-gray-700 transition-all"
                 >
-                  ← Orqaga
+                  ← Geri
                 </button>
               </form>
             </>
@@ -233,7 +233,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-white/60 text-sm mt-6">
-          © 2024 Hilal AI Bot. Barcha huquqlar himoyalangan.
+          © 2024 Hilal AI Bot. Tüm hakları saklıdır.
         </p>
       </div>
     </div>

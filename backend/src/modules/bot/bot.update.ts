@@ -47,7 +47,7 @@ export class BotUpdate {
 
     // Check if user is admin
     if (!this.isAdmin(user.id)) {
-      await ctx.reply('⛔ Sizda admin huquqlari yo\'q / You are not an admin');
+      await ctx.reply('⛔ Admin yetkiniz yok / You are not an admin');
       return;
     }
 
@@ -60,14 +60,14 @@ export class BotUpdate {
     const keyboard = {
       inline_keyboard: [
         [
-          { text: '🖥 Admin Panelga Kirish', url: autoLoginUrl },
+          { text: '🖥 Admin Panele Giriş', url: autoLoginUrl },
         ],
         [
-          { text: '📊 Statistika', callback_data: 'admin_stats' },
-          { text: '👥 Foydalanuvchilar', callback_data: 'admin_users' },
+          { text: '📊 İstatistik', callback_data: 'admin_stats' },
+          { text: '👥 Kullanıcılar', callback_data: 'admin_users' },
         ],
         [
-          { text: '📢 Xabar yuborish', callback_data: 'admin_broadcast' },
+          { text: '📢 Mesaj Gönder', callback_data: 'admin_broadcast' },
         ],
       ],
     };
@@ -77,13 +77,13 @@ export class BotUpdate {
     const message = `
 🔐 *Admin Panel*
 
-📊 *Statistika:*
-👥 Jami foydalanuvchilar: ${stats.totalUsers}
-📝 Jami so'rovlar: ${stats.totalRequests}
-📅 Bugun: ${stats.todayRequests}
+📊 *İstatistik:*
+👥 Toplam kullanıcı: ${stats.totalUsers}
+📝 Toplam istek: ${stats.totalRequests}
+📅 Bugün: ${stats.todayRequests}
 
-🔗 Admin panelga kirish uchun pastdagi tugmani bosing.
-⏱ Link 5 daqiqa amal qiladi.
+🔗 Admin panele girmek için aşağıdaki butona tıklayın.
+⏱ Link 5 dakika geçerli.
 `;
 
     await ctx.replyWithMarkdown(message, { reply_markup: keyboard });
@@ -159,18 +159,18 @@ export class BotUpdate {
       if (data === 'admin_stats') {
         const stats = await this.statsService.getDashboardStats();
         const message = `
-📊 *Batafsil Statistika*
+📊 *Detaylı İstatistik*
 
-👥 Jami foydalanuvchilar: ${stats.totalUsers}
-📝 Jami so'rovlar: ${stats.totalRequests}
+👥 Toplam kullanıcı: ${stats.totalUsers}
+📝 Toplam istek: ${stats.totalRequests}
 
-📅 *Bugungi statistika:*
-• So'rovlar: ${stats.todayRequests}
+📅 *Bugünkü istatistik:*
+• İstekler: ${stats.todayRequests}
 
-📈 *So'rov turlari:*
-• Matn: ${stats.textRequests || 0}
-• Ovoz: ${stats.voiceRequests || 0}
-• Rasm: ${stats.imageRequests || 0}
+📈 *İstek türleri:*
+• Metin: ${stats.textRequests || 0}
+• Ses: ${stats.voiceRequests || 0}
+• Resim: ${stats.imageRequests || 0}
 `;
         await ctx.answerCbQuery();
         await ctx.reply(message, { parse_mode: 'Markdown' });
@@ -178,9 +178,9 @@ export class BotUpdate {
 
       if (data === 'admin_users') {
         const topUsers = await this.statsService.getTopUsers(10);
-        let message = '👥 *Top 10 Foydalanuvchilar:*\n\n';
+        let message = '👥 *Top 10 Kullanıcı:*\n\n';
         topUsers.forEach((u: any, i: number) => {
-          message += `${i + 1}. ${u.firstName || 'User'} - ${u.totalRequests} so'rov\n`;
+          message += `${i + 1}. ${u.firstName || 'User'} - ${u.totalRequests} istek\n`;
         });
         await ctx.answerCbQuery();
         await ctx.reply(message, { parse_mode: 'Markdown' });
@@ -188,7 +188,7 @@ export class BotUpdate {
 
       if (data === 'admin_broadcast') {
         await ctx.answerCbQuery();
-        await ctx.reply('📢 Xabar yuborish uchun admin paneldan foydalaning:\n\n' + 
+        await ctx.reply('📢 Mesaj göndermek için admin paneli kullanın:\n\n' + 
           this.configService.get('ADMIN_PANEL_URL', 'http://localhost:3001') + '/dashboard/posts');
       }
     }
@@ -828,7 +828,7 @@ export class BotUpdate {
     // Login kodi yaratish
     const code = this.authService.generateTelegramLoginCode(String(user.id));
 
-    const message = `🔐 *Admin Panel Giriş Kodu*\n\n📱 Kod: \`${code}\`\n\n⏰ Kod 5 dakika geçerli.\n\n🌐 Panele gidin: http://localhost:3001\n\n"Telegram ile giriş" butonuna tıklayın ve kodu girin.`;
+    const message = `🔐 *Admin Panel Giriş Kodu*\n\n📱 Kod: \`${code}\`\n\n⏰ Kod 5 dakika geçerli.\n\n🌐 Panele gidin: ${this.configService.get('ADMIN_PANEL_URL', 'http://localhost:3001')}\n\n"Telegram ile giriş" butonuna tıklayın ve kodu girin.`;
 
     await ctx.replyWithMarkdown(message);
   }

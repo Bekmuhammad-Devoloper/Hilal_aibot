@@ -1,6 +1,6 @@
 const messages = {
   welcome: (name: string) =>
-    `Merhaba ${name}! 👋\n\n🇹🇷 Ben Hilal Edu türk tili markazining yordamchi assistant botiman!\n\nMetin gönderin, dilbilgisi hatalarını kontrol edeyim.`,
+    `📚 Merhaba, ${name}!\n\n📝 Ben dilbilgisi düzeltme botuyum.\n\nBana gönderin:\n • ✍️ Metin - dilbilgisini kontrol ederim\n • 🎤 Sesli mesaj - metne çevirip kontrol ederim\n • 🖼 Görsel - metni okuyup kontrol ederim\n\n🔗 Yardım: /help`,
 
   help: `*Yardım* 📚\n\n📝 Metin mesajı gönderin\n🎤 Sesli mesaj gönderin\n🖼 Resim gönderin\n\n*Komutlar:*\n/start - Başlat\n/help - Yardım\n/stats - İstatistikler`,
 

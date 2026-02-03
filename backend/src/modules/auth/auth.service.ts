@@ -12,10 +12,11 @@ function loadCodes(): Map<string, { telegramId: string; expiresAt: string }> {
   try {
     if (fs.existsSync(CODES_FILE)) {
       const data = JSON.parse(fs.readFileSync(CODES_FILE, 'utf-8'));
+      console.log('[Auth] Loaded codes from file:', Object.keys(data));
       return new Map(Object.entries(data));
     }
   } catch (e) {
-    console.error('Error loading codes:', e);
+    console.error('[Auth] Error loading codes:', e);
   }
   return new Map();
 }
@@ -24,8 +25,9 @@ function saveCodes(codes: Map<string, { telegramId: string; expiresAt: string }>
   try {
     const obj = Object.fromEntries(codes);
     fs.writeFileSync(CODES_FILE, JSON.stringify(obj, null, 2));
+    console.log('[Auth] Saved codes to file:', Object.keys(obj));
   } catch (e) {
-    console.error('Error saving codes:', e);
+    console.error('[Auth] Error saving codes:', e);
   }
 }
 
@@ -91,7 +93,8 @@ export class AuthService {
     codes.set(code, { telegramId, expiresAt });
     saveCodes(codes);
     
-    console.log('Generated code:', code, 'for telegramId:', telegramId);
+    console.log('[Auth] Generated code:', code, 'for telegramId:', telegramId, '| Expires:', expiresAt);
+    console.log('[Auth] Current codes count:', codes.size);
     
     // Eskilarini tozalash
     this.cleanupExpiredCodes();
@@ -101,35 +104,46 @@ export class AuthService {
 
   // Telegram kodi bilan login
   async loginWithTelegramCode(code: string) {
+    console.log('[Auth] loginWithTelegramCode called with code:', code);
+    
     // Fayldan kodlarni yuklash
     const codes = loadCodes();
+    console.log('[Auth] All codes:', Array.from(codes.keys()));
+    
     const data = codes.get(code);
     
-    console.log('Checking code:', code, '| Found:', !!data);
+    console.log('[Auth] Checking code:', code, '| Found:', !!data, '| Data:', data);
     
     if (!data) {
+      console.log('[Auth] Code not found in storage');
       throw new UnauthorizedException('Invalid or expired code');
     }
     
     const expiresAt = new Date(data.expiresAt);
-    if (new Date() > expiresAt) {
+    const now = new Date();
+    console.log('[Auth] Code expires:', expiresAt, '| Now:', now, '| Expired:', now > expiresAt);
+    
+    if (now > expiresAt) {
       codes.delete(code);
       saveCodes(codes);
+      console.log('[Auth] Code expired, deleted');
       throw new UnauthorizedException('Code expired');
     }
     
     // Admin ID larni tekshirish - process.env dan ham o'qiymiz
     const adminIdsEnv = process.env.ADMIN_IDS || this.configService.get('ADMIN_IDS') || '';
     const adminIds = adminIdsEnv.split(',').map(id => id.trim());
-    console.log('Auth ADMIN_IDS:', adminIdsEnv, '| Telegram ID:', data.telegramId, '| Is Admin:', adminIds.includes(data.telegramId));
+    console.log('[Auth] ADMIN_IDS:', adminIdsEnv, '| Telegram ID:', data.telegramId, '| Is Admin:', adminIds.includes(data.telegramId));
     
     if (!adminIds.includes(data.telegramId)) {
+      console.log('[Auth] User not authorized as admin');
       throw new UnauthorizedException('Not authorized as admin');
     }
     
     // Kodni o'chirish (bir martalik)
     codes.delete(code);
     saveCodes(codes);
+    console.log('[Auth] Code used and deleted');
     
     // Token yaratish
     const payload = { 
@@ -139,8 +153,11 @@ export class AuthService {
       isTelegramAuth: true,
     };
     
+    const token = this.jwtService.sign(payload);
+    console.log('[Auth] JWT token generated successfully');
+    
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: token,
       user: {
         id: data.telegramId,
         username: `Admin (Telegram)`,

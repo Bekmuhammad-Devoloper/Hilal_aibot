@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request, Req, RawBodyRequest } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Req, RawBodyRequest, UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiProperty } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -44,12 +44,20 @@ export class AuthController {
     console.log('Code value:', body?.code);
     console.log('============================');
     
-    const code = body?.code;
+    const code = body?.code?.toString()?.trim();
     if (!code) {
-      return { error: 'Code is required', receivedBody: body };
+      console.log('No code provided');
+      throw new UnauthorizedException('Code is required');
     }
     
-    return this.authService.loginWithTelegramCode(code);
+    try {
+      const result = await this.authService.loginWithTelegramCode(code);
+      console.log('Telegram login successful');
+      return result;
+    } catch (error: any) {
+      console.error('Telegram login error:', error.message);
+      throw error;
+    }
   }
 
   @Get('profile')
